@@ -52,7 +52,7 @@ class Login extends BasicAdmin {
 			// 保存SESSION
 			session('user', $user);
 			// 修改用户最后登录时间和登录次数
-			Db::name('SystemUser')->where('id', $user['id'])->update(['login_time' => time(), 'login_num' => ['exp', 'login_num+1']]);
+			Db::name('SystemUser')->where('id', $user['id'])->update(['login_num' => ['exp', 'login_num+1'], 'login_time' => time(), 'login_ip' => $this->request->ip()]);
 			// 获取用户权限节点
 			!empty($user['authorize']) && NodeService::applyAuthNode();
 			LogService::write('系统管理', '用户登录系统成功');
