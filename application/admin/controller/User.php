@@ -12,6 +12,7 @@ namespace app\admin\controller;
 use controller\BasicAdmin;
 use service\DataService;
 use think\Db;
+use service\ToolsService;
 
 /**
  * 系统用户管理控制器
@@ -24,6 +25,8 @@ class User extends BasicAdmin {
 
 	/**
 	 * 用户列表
+	 * @access public
+	 * @return \think\response\View
 	 */
 	public function index() {
 		// 设置页面标题
@@ -43,15 +46,9 @@ class User extends BasicAdmin {
 	}
 
 	/**
-	 * 授权管理
-	 * @return array|string
-	 */
-	public function auth() {
-		return $this->_form($this->table, 'auth');
-	}
-
-	/**
 	 * 用户添加
+	 * @access public
+	 * @return \think\response\View
 	 */
 	public function add() {
 		return $this->_form($this->table, 'form');
@@ -59,34 +56,38 @@ class User extends BasicAdmin {
 
 	/**
 	 * 用户编辑
+	 * @access public
+	 * @return \think\response\View
 	 */
 	public function edit() {
 		return $this->_form($this->table, 'form');
 	}
 
 	/**
+	 * 授权管理
+	 * @access public
+	 * @return \think\response\View
+	 */
+	public function auth() {
+		return $this->_form($this->table, 'auth');
+	}
+
+	/**
 	 * 用户密码修改
+	 * @access public
+	 * @return \think\response\View
 	 */
 	public function pass() {
 		if (in_array('10000', explode(',', $this->request->post('id')))) {
 			$this->error('系统超级账号禁止操作！');
 		}
-		if ($this->request->isGet()) {
-			$this->assign('verify', false);
-			return $this->_form($this->table, 'pass');
-		}
-		$data = $this->request->post();
-		if ($data['password'] !== $data['repassword']) {
-			$this->error('两次输入的密码不一致！');
-		}
-		if (DataService::save($this->table, ['data' => ['id' => $data['id'], 'password' => md5($data['password'])], 'upKey' => 'id'])) {
-			$this->success('密码修改成功，下次请使用新密码登录！', '');
-		}
-		$this->error('密码修改失败，请稍候再试！');
+		$this->assign('verify', false);
+		return $this->_form($this->table, 'pass');
 	}
 
 	/**
 	 * 表单数据默认处理
+	 * @access public
 	 * @param array $data
 	 */
 	public function _form_filter(&$data) {
@@ -98,6 +99,21 @@ class User extends BasicAdmin {
 				unset($data['username']);
 			} elseif (Db::name($this->table)->where('username', $data['username'])->find()) {
 				$this->error('用户账号已经存在，请使用其它账号！');
+			}
+			if (isset($data['password'])) {
+				if ($data['password'] !== $data['re_password']) {
+					$this->error('两次输入的密码不一致！');
+				}
+				if (isset($data['id'])) {
+					$user = Db::name($this->table)->where('id', $data['id'])->find();
+					if (isset($data['old_password'])) {
+						($user['password'] !== passwordEncode($data['old_password'], $user['random_code'])) && $this->error('旧密码不匹配，请重新输入!');
+					}
+					$data['password'] = passwordEncode($data['password'], $user['random_code']);
+				} else {
+					$data['random_code'] = ToolsService::getRandString(8);
+					$data['password'] = passwordEncode($data['password'], $data['random_code']);
+				}
 			}
 		} else {
 			$data['authorize'] = explode(',', isset($data['authorize']) ? $data['authorize'] : '');
