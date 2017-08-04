@@ -31,7 +31,7 @@ class DataService {
 		// 实例化查询类
 		$db = is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery;
 		// 获取表字段
-		$fields = $db->getTableFields(['table' => $db->getTable()]);
+		$fields = $db->getTableFields($db->getTable());
 		// 默认字段
 		$defData = [
 			'create_time' => time(), // 创建时间
@@ -39,7 +39,7 @@ class DataService {
 		];
 		// 更具表字段获取保存和更新的数据
 		$_data = [];
-		foreach (array($data, $defData) as $k => $v) {
+		foreach (array_merge($data, $defData) as $k => $v) {
 			in_array($k, $fields) && ($_data[$k] = $v);
 		}
 		// 更新数据
@@ -112,5 +112,36 @@ class DataService {
 		}
 		// 更新模式
 		return false !== $db->update([$field => $value]);
+	}
+
+	/**
+	 * 生成唯一序号 (失败返回 NULL )
+	 * @access public
+	 * @param int $length 序号长度
+	 * @param string $type 序号顾类型
+	 * @return string
+	 */
+	public static function createSequence($length = 10, $type = 'SYSTEM') {
+		$times = 0;
+		while ($times++ < 10) {
+			$sequence = ToolsService::getRandString($length, 1);
+			$data = ['sequence' => $sequence, 'type' => strtoupper($type), 'create_time' => time()];
+			if (Db::name('SystemSequence')->where($data)->count() < 1 && Db::name('SystemSequence')->insert($data)) {
+				return $sequence;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 删除指定序号
+	 * @access public
+	 * @param string $sequence
+	 * @param string $type
+	 * @return bool
+	 */
+	public static function deleteSequence($sequence, $type = 'SYSTEM') {
+		$data = ['sequence' => $sequence, 'type' => strtoupper($type)];
+		return Db::name('SystemSequence')->where($data)->delete();
 	}
 }
