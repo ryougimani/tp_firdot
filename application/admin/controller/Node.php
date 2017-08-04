@@ -26,7 +26,7 @@ class Node extends BasicAdmin {
 	/**
 	 * 节点列表
 	 * @access public
-	 * @return view
+	 * @return \think\response\View
 	 */
 	public function index() {
 		$this->assign('alert', [
