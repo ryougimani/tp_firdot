@@ -72,9 +72,9 @@ class Auth extends BasicAdmin {
 
 	/**
 	 * 节点数据拼装
-	 * @access public
-	 * @param array $nodes
-	 * @param int $level
+	 * @access protected
+	 * @param array $nodes 节点数据
+	 * @param int $level 级别
 	 * @return array
 	 */
 	protected function _filterNodes($nodes, $level = 1) {
