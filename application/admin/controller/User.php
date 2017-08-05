@@ -21,6 +21,7 @@ use service\ToolsService;
  */
 class User extends BasicAdmin {
 
+	protected $modelName = '系统用户';
 	public $table = 'SystemUser';
 
 	/**
