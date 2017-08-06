@@ -47,6 +47,17 @@ class User extends BasicAdmin {
 	}
 
 	/**
+	 * 列表数据处理
+	 * @access protected
+	 * @param array $data
+	 */
+	protected function _data_filter(&$data) {
+		foreach ($data as &$val) {
+			isset($val['login_time']) && $val['login_time'] = date('Y-m-d H:i:s', $val['login_time']);
+		}
+	}
+
+	/**
 	 * 用户添加
 	 * @access public
 	 * @return \think\response\View
