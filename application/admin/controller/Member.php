@@ -63,7 +63,7 @@ class Member extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function add() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 
 	/**
@@ -72,7 +72,7 @@ class Member extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function edit() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 	
 	/**
@@ -81,7 +81,7 @@ class Member extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function auth() {
-		return $this->_form($this->table, 'auth');
+		return parent::_form($this->table, 'auth');
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Member extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function pass() {
-		return $this->_form($this->table, 'pass');
+		return parent::_form($this->table, 'pass');
 	}
 
 	/**
