@@ -66,7 +66,7 @@ class MemberAuth extends BasicAdmin {
 				break;
 			default :
 				$this->assign('title', '节点授权');
-				return $this->_form($this->table, 'apply');
+				return parent::_form($this->table, 'apply');
 		}
 	}
 
@@ -94,7 +94,7 @@ class MemberAuth extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function add() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 
 	/**
@@ -103,7 +103,7 @@ class MemberAuth extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function edit() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 
 	/**
