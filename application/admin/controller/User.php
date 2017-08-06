@@ -96,29 +96,35 @@ class User extends BasicAdmin {
 			if (isset($data['authorize']) && is_array($data['authorize'])) {
 				$data['authorize'] = join(',', $data['authorize']);
 			}
-			if (isset($data['id'])) {
-				unset($data['username']);
-			} elseif (Db::name($this->table)->where('username', $data['username'])->find()) {
-				$this->error('用户账号已经存在，请使用其它账号！');
-			}
-			if (isset($data['password'])) {
-				if ($data['password'] !== $data['re_password']) {
-					$this->error('两次输入的密码不一致！');
-				}
-				if (isset($data['id'])) {
-					$user = Db::name($this->table)->where('id', $data['id'])->find();
-					if (isset($data['old_password'])) {
-						($user['password'] !== passwordEncode($data['old_password'], $user['random_code'])) && $this->error('旧密码不匹配，请重新输入!');
-					}
-					$data['password'] = passwordEncode($data['password'], $user['random_code']);
-				} else {
-					$data['random_code'] = ToolsService::getRandString(8);
-					$data['password'] = passwordEncode($data['password'], $data['random_code']);
-				}
-			}
-		} else {
+			// 规则验证
+			$result = $this->validate($data, 'User.' . $this->request->action());
+			(true !== $result) && $this->error($result);
+		}
+		if ($this->request->isGet()) {
 			$data['authorize'] = explode(',', isset($data['authorize']) ? $data['authorize'] : '');
 			$this->assign('authorizes', Db::name('SystemAuth')->select());
+		}
+	}
+
+	/**
+	 * 添加表单数据处理
+	 * @access protected
+	 * @param array $data
+	 */
+	protected function _add_form_filter(&$data) {
+		if ($this->request->isPost()) {
+			$data['random_code'] = ToolsService::getRandString(8);
+		}
+	}
+	/**
+	 * 密码表单数据处理
+	 * @access protected
+	 * @param array $data
+	 */
+	protected function _pass_form_filter(&$data) {
+		if ($this->request->isPost()) {
+			$user = Db::name($this->table)->where('id', $data['id'])->find();
+			$data['password'] = passwordEncode($data['password'], $user['random_code']);
 		}
 	}
 
