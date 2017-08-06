@@ -27,7 +27,7 @@ class Pinyin {
 	* param $delimiter  String   转换之后拼音之间分隔符
 	* param $outside_ignore  Boolean     是否忽略非汉字内容
 	*/
-	public function transformWithTone($input_char, $delimiter = ' ', $outside_ignore = false) {
+	public function transformWithTone($input_char, $delimiter = '', $outside_ignore = false) {
 		$input_len = mb_strlen($input_char, $this->charset);
 		$output_char = '';
 		for ($i = 0; $i < $input_len; $i++) {
