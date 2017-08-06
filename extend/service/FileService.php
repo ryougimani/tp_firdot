@@ -100,7 +100,8 @@ class FileService {
 		if ('' != $root) {
 			$root = '/' . ltrim($root, '/');
 		}
-		return ($request->isSsl() ? 'https' : 'http') . '://' . $request->host() . "{$root}/static/upload/";
+		//return ($request->isSsl() ? 'https' : 'http') . '://' . $request->host() . "{$root}/static/upload/";
+		return "{$root}/static/upload/";
 	}
 
 	/**
@@ -127,7 +128,7 @@ class FileService {
 	 * @return string
 	 */
 	public static function getUploadLocalUrl() {
-		return url('@admin/plugs/upload');
+		return url('@admin/plugs/upload_file');
 	}
 
 	/**
