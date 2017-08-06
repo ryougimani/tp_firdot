@@ -22,7 +22,7 @@ use service\ToolsService;
 class Member extends BasicAdmin {
 
 	protected $modelName = '前台用户';
-	public $table = 'Members';
+	public $table = 'Member';
 
 	/**
 	 * 用户列表
