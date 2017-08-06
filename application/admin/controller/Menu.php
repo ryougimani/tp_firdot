@@ -55,7 +55,7 @@ class Menu extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function add() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 
 	/**
@@ -64,7 +64,7 @@ class Menu extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function edit() {
-		return $this->_form($this->table, 'form');
+		return parent::_form($this->table, 'form');
 	}
 
 	/**
