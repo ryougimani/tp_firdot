@@ -21,12 +21,12 @@
             <input type="text" name="email" pattern="^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$" value='{$data.mail|default=""}' title="请输入联系邮箱" placeholder="请输入联系邮箱" class="layui-input">
         </div>
     </div>
-    {if isset($authorizes)}
+    {if isset($authorizes) && !isset($data['id'])}
     <div class="layui-form-item">
         <label class="layui-form-label">访问授权</label>
         <div class="layui-input-block">
             {foreach $authorizes as $authorize}
-            {if in_array($authorize['id'],$data['authorize'])}
+            {if isset($data['authorize']) && in_array($authorize['id'], $data['authorize'])}
             <input type="checkbox" checked name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">
             {else}
             <input type="checkbox" name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">

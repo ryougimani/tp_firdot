@@ -112,7 +112,7 @@ class User extends BasicAdmin {
 			(true !== $result) && $this->error($result);
 		}
 		if ($this->request->isGet()) {
-			$data['authorize'] = explode(',', isset($data['authorize']) ? $data['authorize'] : '');
+			isset($data['authorize']) && $data['authorize'] = explode(',', $data['authorize']);
 			$this->assign('authorizes', Db::name('SystemAuth')->select());
 		}
 	}
