@@ -68,6 +68,6 @@ class AccessAuth {
 		}
 		// 权限正常, 默认赋值
 		$view = View::instance(Config::get('template'), Config::get('view_replace_str'));
-		$view->assign('classuri', strtolower("{$module}/{$controller}"));
+		$view->assign('controlUrl', strtolower("{$module}/{$controller}"));
 	}
 }

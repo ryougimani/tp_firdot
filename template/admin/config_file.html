@@ -8,14 +8,14 @@
 			<select class="layui-input" name="storage_type" required="required">
 				{if systemConfig('storage_type') eq 'qiniu'}
 				<option value='local'>本地服务器</option>
-				<option selected="selected" value='qiniu'>七牛云存储</option>
+				<option value='qiniu' selected="selected">七牛云存储</option>
 				<option value='oss'>AliOSS存储</option>
 				{elseif systemConfig('storage_type') eq 'oss'}
 				<option value='local'>本地服务器</option>
 				<option value='qiniu'>七牛云存储</option>
-				<option selected="selected" value='oss'>AliOSS存储</option>
+				<option value='oss' selected="selected">AliOSS存储</option>
 				{else}
-				<option selected="selected" value='local'>本地服务器</option>
+				<option value='local' selected="selected">本地服务器</option>
 				<option value='qiniu'>七牛云存储</option>
 				<option value='oss'>AliOSS存储</option>
 				{/if}

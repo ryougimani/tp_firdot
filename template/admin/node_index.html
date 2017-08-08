@@ -22,12 +22,12 @@
 				<td style="width:20px"></td>
 				<td class='text-left nowrap'>
 					{$vo.spl}{$vo.node}
-					{if auth("$classuri/save")}
+					{if auth("$controlUrl/save")}
 					&nbsp;<input class='layui-input layui-input-inline title-input' style='height:28px;line-height:28px;width:auto' name='title.admin.{$vo.node}' value="{$vo.title}"/>
 					{/if}
 				</td>
 				<td class='text-left nowrap'>
-					{if auth("$classuri/save")}
+					{if auth("$controlUrl/save")}
 					<label>
 						{if substr_count($vo['node'],'/')==2}
 						{notempty name='vo.is_auth'}
@@ -62,12 +62,12 @@
 				<td style="width:20px"></td>
 				<td class='text-left nowrap'>
 					{$vo.spl}{$vo.node}
-					{if auth("$classuri/save")}
+					{if auth("$controlUrl/save")}
 					&nbsp;<input class='layui-input layui-input-inline title-input' style='height:28px;line-height:28px;width:auto' name='title.home.{$vo.node}' value="{$vo.title}"/>
 					{/if}
 				</td>
 				<td class='text-left nowrap'>
-					{if auth("$classuri/save")}
+					{if auth("$controlUrl/save")}
 					<label>
 						{if substr_count($vo['node'],'/')==2}
 						{notempty name='vo.is_auth'}
@@ -87,7 +87,7 @@
 		</table>
 	</div>
 </div>
-{if auth("$classuri/save")}
+{if auth("$controlUrl/save")}
 <script>
 	$(function () {
 		$('input.title-input').on('blur', function () {
