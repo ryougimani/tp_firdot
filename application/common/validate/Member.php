@@ -55,6 +55,7 @@ class Member extends validate {
 		'edit' => ['id', 'phone', 'email'],
 		'pass' => ['id', 'old_password', 'password', 're_password'],
 		'auth' => ['id'],
+		'reg' => ['phone'],
 	];
 
 	protected function _checkOldPwd($value, $rule, $data) {
