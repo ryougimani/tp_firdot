@@ -129,6 +129,18 @@ class MemberAuth extends BasicAdmin {
 	}
 
 	/**
+	 * 默认操作
+	 * @access public
+	 */
+	public function is_default() {
+		Db::name($this->table)->where('is_default', 1)->update(['is_default' => 0]);
+		if (DataService::update($this->table)) {
+			$this->success('设置成功！', '');
+		}
+		$this->error('设置失败，请稍候再试！');
+	}
+
+	/**
 	 * 删除操作
 	 * @access public
 	 */

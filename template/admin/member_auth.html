@@ -13,10 +13,10 @@
 		<label class="layui-form-label">访问授权</label>
 		<div class="layui-input-block">
 			{foreach $authorizes as $authorize}
-			{if in_array($authorize['id'],$data['authorize'])}
-			<input type="checkbox" checked name="authorize[]" value="{$authorize.id}" title="{$authorize.title}">
+			{if isset($data['authorize']) && in_array($authorize['id'],$data['authorize'])}
+			<input type="checkbox" checked name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">
 			{else}
-			<input type="checkbox" name="authorize[]" value="{$authorize.id}" title="{$authorize.title}">
+			<input type="checkbox" name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">
 			{/if}
 			{/foreach}
 		</div>

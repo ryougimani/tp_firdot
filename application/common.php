@@ -11,8 +11,6 @@ use service\NodeService;
 use service\DataService;
 use think\Db;
 
-$mobileRegex = '^1[3-9][0-9]{9}$';
-
 /**
  * RBAC节点权限验证
  * @param string $node
@@ -33,7 +31,7 @@ function systemConfig($name, $value = false) {
 	if ($value !== false) {
 		$config = [];
 		$data = ['name'=>$name, 'value'=>$value];
-		return DataService::save('SystemConfig', $data,'name');
+		return DataService::save('SystemConfig', $data, 'name');
 	}
 	if (empty($config)) {
 		foreach (Db::name('SystemConfig')->select() as $item) {
@@ -47,20 +45,20 @@ function systemConfig($name, $value = false) {
  * 汉字转换拼音
  * @param string $chinese 中文字符
  * @param int $type 转换类型 默认为全拼音 1为首字母 2为带音调
+ * @param string $delimiter 分割符
  * @return mixed|Pinyin|string
  */
-function transformPinyin($chinese, $type = 0) {
-	vendor("pinyin.pinyin");
+function transformPinyin($chinese, $type = 0, $delimiter = ' ') {
 	$pinyin = new \Pinyin();
 	switch ($type) {
 		case 1:
-			$pinyin = $pinyin->transformUcwords($chinese);
+			$pinyin = $pinyin->transformUcwords($chinese, $delimiter);
 			break;
 		case 2:
-			$pinyin = $pinyin->transformWithTone($chinese);
+			$pinyin = $pinyin->transformWithTone($chinese, $delimiter);
 			break;
 		default:
-			$pinyin = $pinyin->transformWithoutTone($chinese);
+			$pinyin = $pinyin->transformWithoutTone($chinese, $delimiter);
 	}
 	return $pinyin;
 }
@@ -73,63 +71,6 @@ function transformPinyin($chinese, $type = 0) {
  */
 function passwordEncode($password, $code){
 	return md5(md5($password).$code);
-}
-
-/**
- * 产生随机字串
- * @param int $length 长度
- * @param int $type 字串类型 0字母加数字 1数字 2字母 3大写 4小写
- * @param string $addChars 额外字符
- * @return null|string
- */
-function rand_string($length = 12, $type = 0, $addChars = '') {
-	$str = null;
-	switch ($type) {
-		case 1:
-			$chars = '0123456789';
-			break;
-		case 2:
-			$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' . $addChars;
-			break;
-		case 3:
-			$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' . $addChars;
-			break;
-		case 4:
-			$chars = 'abcdefghijklmnopqrstuvwxyz' . $addChars;
-			break;
-		default:
-			$chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' . $addChars;
-			break;
-	}
-	// 打乱字符串
-	$chars = str_shuffle(str_repeat($chars, $length));
-	// 获取字符串长度
-	$chars_len = strlen($chars) - 1;
-	// 循环长度获得随机字符串
-	while (strlen($str) < $length) {
-		$str .= mb_substr($chars, mt_rand(0, $chars_len), 1, 'UTF-8');
-	};
-	return $str;
-}
-
-/**
- * 生成一定数量的随机数，并且不重复
- * @param int $num 数量
- * @param int $length 长度
- * @param int $type 字串类型 0字母加数字 1数字 2字母 3大写 4小写
- * @return array|bool
- */
-function count_rand($num, $length = 12, $type = 0) {
-	//不足以生成一定数量的不重复数字
-	if ($type == 1 && $length < strlen($num))
-		return false;
-
-	$rand = [];
-	while (count($rand) < $num) {
-		$rand[] = rand_string($length, $type);
-		$rand = array_unique($rand);
-	}
-	return $rand;
 }
 
 /**

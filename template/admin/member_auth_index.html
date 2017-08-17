@@ -21,6 +21,7 @@
 			</th>
 			<th class='text-center'>权限名称</th>
 			<th class='text-center'>权限描述</th>
+			<th class='text-center'>默认</th>
 			<th class='text-center'>状态</th>
 			<th class='text-center'>操作</th>
 		</tr>
@@ -34,8 +35,15 @@
 			<td class='list-table-sort-td'>
 				<input name="_{$vo.id}" value="{$vo.sort}" class="list-sort-input"/>
 			</td>
-			<td class='text-center'>{$vo.title}</td>
+			<td class='text-center'>{$vo.name}</td>
 			<td class='text-center'>{$vo.desc|default="<span style='color:#ccc'>没有写描述哦！</span>"}</td>
+			<td class='text-center'>
+				{if $vo.is_default eq 0}
+				<span>否</span>
+				{elseif $vo.is_default eq 1}
+				<span style="color:#090">是</span>
+				{/if}
+			</td>
 			<td class='text-center'>
 				{if $vo.status eq 0}
 				<span>已禁用</span>
@@ -52,14 +60,16 @@
 				<span class="text-explode">|</span>
 				<a data-open='{:url("$controlUrl/apply")}?id={$vo.id}' href="javascript:void(0)">授权</a>
 				{/if}
+				{if auth("$controlUrl/is_default")}
+				<span class="text-explode">|</span>
+				<a data-update="{$vo.id}" data-field='is_default' data-value='1' data-action='{:url("$controlUrl/is_default")}' href="javascript:void(0)">设置默认</a>
+				{/if}
 				{if $vo.status eq 1 and auth("$controlUrl/forbid")}
 				<span class="text-explode">|</span>
-				<a data-update="{$vo.id}" data-field='status' data-value='0' data-action='{:url("$controlUrl/disables")}'
-				   href="javascript:void(0)">禁用</a>
+				<a data-update="{$vo.id}" data-field='status' data-value='0' data-action='{:url("$controlUrl/disables")}' href="javascript:void(0)">禁用</a>
 				{elseif auth("$controlUrl/resume")}
 				<span class="text-explode">|</span>
-				<a data-update="{$vo.id}" data-field='status' data-value='1' data-action='{:url("$controlUrl/enables")}'
-				   href="javascript:void(0)">启用</a>
+				<a data-update="{$vo.id}" data-field='status' data-value='1' data-action='{:url("$controlUrl/enables")}' href="javascript:void(0)">启用</a>
 				{/if}
 				{if auth("$controlUrl/del")}
 				<span class="text-explode">|</span>

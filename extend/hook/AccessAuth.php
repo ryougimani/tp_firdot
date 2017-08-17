@@ -55,10 +55,12 @@ class AccessAuth {
 			// 用户登录状态检查
 			if ((!empty($vars['checkAuth']) || !empty($vars['checkLogin'])) && !session('member')) {
 				if ($this->request->isAjax()) {
-					$result = ['code' => 0, 'msg' => '抱歉, 您还没有登录!', 'data' => '', 'url' => '@user/login', 'wait' => 3];
-					throw new HttpResponseException(json($result));
+					if (!$this->request->isMobile()) {
+						$result = ['code' => 0, 'msg' => '抱歉, 您还没有登录!', 'data' => '', 'url' => '@login', 'wait' => 3];
+						throw new HttpResponseException(json($result));
+					}
 				}
-				throw new HttpResponseException(redirect('@user/login'));
+				throw new HttpResponseException(redirect('@login'));
 			}
 			// 访问权限节点检查
 			if (!empty($vars['checkLogin']) && !NodeService::checkAuthNode("{$module}/{$controller}/{$action}")) {

@@ -37,7 +37,7 @@
 			</td>
 			<td class='visible-lg'>{$vo.id}</td>
 			<td>{$vo.spl}{$vo.name}</td>
-			<td class='visible-lg'>{$vo.pinyin}</td>
+			<td class='visible-lg'>{$vo.pinyin|default="<span style='color:#ccc'>还没有填写拼音</span>"}</td>
 			<td class='text-center'>
 				{if $vo.status eq 0}
 				<span>已禁用</span>
