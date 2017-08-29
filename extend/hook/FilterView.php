@@ -26,13 +26,16 @@ class FilterView {
      * @param $params
      */
     public function run(&$params) {
-        $this->request = Request::instance();
-        $app = $this->request->root(true);
-        $replace = [
-            '__APP__'    => $app,
-            '__SELF__'   => $this->request->url(true),
-            '__PUBLIC__' => strpos($app, EXT) ? ltrim(dirname($app), DS) : $app,
-        ];
-        $params = str_replace(array_keys($replace), array_values($replace), $params);
+	    $this->request = Request::instance();
+	    list($appRoot, $uriSelf) = [$this->request->root(true), $this->request->url(true)];
+	    $uriRoot = strpos($appRoot, EXT) ? ltrim(dirname($appRoot), DS) : $appRoot;
+	    $uriStatic = "{$uriRoot}/static";
+	    $replace = [
+	    	'__APP__' => $appRoot,
+		    '__SELF__' => $uriSelf,
+		    '__PUBLIC__' => $uriRoot,
+		    '__STATIC__' => $uriStatic
+	    ];
+	    $params = str_replace(array_keys($replace), array_values($replace), $params);
     }
 }
