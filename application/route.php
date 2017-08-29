@@ -8,11 +8,6 @@
 // +----------------------------------------------------------------------
 
 return [
-	'[course/details]' => [
-		':id' => ['course/index/details', ['method' => 'get|post|ajax'], ['id' => '\d+']],
-	],
-	'[activity/details]' => [
-		':id' => ['activity/index/details', ['method' => 'get|post|ajax'], ['id' => '\d+']],
-	],
+
 ];
 
