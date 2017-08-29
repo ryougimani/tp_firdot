@@ -10,7 +10,7 @@
 return [
 	'type' => 'mysql', // 数据库类型
 	'hostname' => '127.0.0.1', // 服务器地址
-	'database' => 'tp_firdot', // 数据库名
+	'database' => 'tp_aijia', // 数据库名
 	'username' => 'root', // 用户名
 	'password' => '123456', // 密码
 	'hostport' => '3306', // 端口

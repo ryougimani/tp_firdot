@@ -22,7 +22,7 @@ return [
 	'default_jsonp_handler' => 'jsonpReturn', // 默认JSONP格式返回的处理方法
 	'var_jsonp_handler' => 'callback', // 默认JSONP处理方法
 	'default_timezone' => 'PRC', // 默认时区
-	'lang_switch_on' => false, // 是否开启多语言
+	'lang_switch_on' => true, // 是否开启多语言
 	'default_filter' => '', // 默认全局过滤方法 用逗号分隔多个
 	'default_lang' => 'zh-cn', // 默认语言
 	'class_suffix' => false, // 应用类库后缀
@@ -37,7 +37,7 @@ return [
 	'empty_controller' => 'Error', // 默认的空控制器名
 	'action_suffix' => '', // 操作方法后缀
 	'controller_auto_search' => false, // 自动搜索控制器
-	'admin_module' => ['admin', 'wechat'], // 后台模块
+	'admin_module' => ['admin', 'system', 'wechat'], // 后台模块
 
 	/* URL设置 */
 	'var_pathinfo' => 's', // PATHINFO变量名 用于兼容模式
