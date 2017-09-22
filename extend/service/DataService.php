@@ -44,7 +44,7 @@ class DataService {
 		}
 		// 更新数据
 		if (self::where($db, $data, $upKey, $where)->count()) {
-			unset($data['create_time'], $data['create_by']);
+			unset($_data['create_time'], $_data['create_by']);
 			return self::where($db, $data, $upKey, $where)->update($_data) !== false;
 		}
 		// 新增数据
@@ -95,7 +95,7 @@ class DataService {
 		!empty($where) && $db->where($where);
 		// 删除模式
 		if ($field === 'delete') {
-			$fields = $db->getTableFields(['table' => $db->getTable()]);
+			$fields = $db->getTableFields($db->getTable());
 			if (in_array('is_deleted', $fields)) {
 				// 删除到回收站
 				return false !== $db->update(['is_deleted' => 1]);
