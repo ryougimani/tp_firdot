@@ -43,7 +43,8 @@ class LogService {
 			'node' => $node,
 			'username' => session('user.username'),
 			'action' => $action,
-			'content' => $content
+			'content' => $content,
+			'create_time' => time()
 		];
 		return self::db()->insert($data) !== false;
 	}
