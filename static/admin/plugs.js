@@ -7,6 +7,7 @@
 // +----------------------------------------------------------------------
 
 define(['jquery'], function () {
+
 	/* jQuery placeholder, fix for IE6,7,8,9 */
 	var JPlaceHolder = {
 		_check: function () {
@@ -18,14 +19,9 @@ define(['jquery'], function () {
 		fix: function () {
 			$(':input[placeholder]').map(function () {
 				var self = $(this), txt = self.attr('placeholder');
-				self.wrap($('<div></div>').css({
-					zoom: '1', margin: 'none', border: 'none', padding: 'none', background: 'none', position: 'relative'
-				}));
+				self.wrap($('<div></div>').css({zoom: '1', margin: 'none', border: 'none', padding: 'none', background: 'none', position: 'relative'}));
 				var pos = self.position(), h = self.outerHeight(true), paddingleft = self.css('padding-left');
-				var holder = $('<span></span>').text(txt).css({
-					position: 'absolute', left: pos.left, top: pos.top, height: h, lineHeight: h + 'px',
-					paddingLeft: paddingleft, color: '#aaa'
-				}).appendTo(self.parent());
+				var holder = $('<span></span>').text(txt).css({position: 'absolute', left: pos.left, top: pos.top, height: h, lineHeight: h + 'px', paddingLeft: paddingleft, color: '#aaa'}).appendTo(self.parent());
 				self.on('focusin focusout change keyup', function () {
 					self.val() ? holder.hide() : holder.show();
 				});
@@ -39,20 +35,18 @@ define(['jquery'], function () {
 	JPlaceHolder.init();
 
 	/* 消息对象 */
-	var msg = function () {
-		this.closeIndexs = {}; // 关闭主键
-
+	$.msg = new msg();
+	function msg() {
+		var self = this;
+		this.shade = [0.02, '#000'];
+		this.successNeedCloseLayerIndex = [];
 		/**
 		 * 关闭消息框
 		 * @returns layer
 		 */
 		this.close = function () {
-			if (!this.closeIndexs['_' + this.index]) {
-				this.closeIndexs['_' + this.index] = true;
-				return layer.close(this.index);
-			}
+			return layer.close(this.index);
 		};
-
 		/**
 		 * 弹出警告消息框
 		 * @param msg 消息内容
@@ -60,10 +54,8 @@ define(['jquery'], function () {
 		 * @returns layer
 		 */
 		this.alert = function (msg, callback) {
-			this.close();
 			return this.index = layer.alert(msg, {end: callback, scrollbar: false});
 		};
-
 		/**
 		 * 确认对话框
 		 * @param msg 提示消息内容
@@ -77,66 +69,40 @@ define(['jquery'], function () {
 				typeof ok === 'function' && ok.call(this);
 				self.close();
 			}, function () {
-				typeof no === 'function' && ok.call(this);
+				typeof no === 'function' && no.call(this);
 				self.close();
 			});
 		};
-
 		/**
-		 * 成功消息
+		 * 显示成功类型的消息
 		 * @param msg 消息内容
 		 * @param time 显示时间
 		 * @param callback 回调函数
 		 * @returns layer
 		 */
 		this.success = function (msg, time, callback) {
-			this.close();
-			return this.index = layer.msg(msg, {
-				icon: 1,
-				shade: this.shade,
-				scrollbar: false,
-				end: callback,
-				time: (time || 2) * 1000,
-				shadeClose: true
-			});
+			return this.index = layer.msg(msg, {icon: 1, shade: this.shade, scrollbar: false, end: callback, time: (time || 2) * 1000, shadeClose: true});
 		};
-
 		/**
-		 * 失败消息
+		 * 显示失败类型的消息
 		 * @param msg 消息内容
 		 * @param time 显示时间
 		 * @param callback 回调函数
 		 * @returns layer
 		 */
 		this.error = function (msg, time, callback) {
-			this.close();
-			return this.index = layer.msg(msg, {
-				icon: 2,
-				shade: this.shade,
-				scrollbar: false,
-				time: (time || 3) * 1000,
-				end: callback,
-				shadeClose: true
-			});
+			return this.index = layer.msg(msg, {icon: 2, shade: this.shade, scrollbar: false, time: (time || 3) * 1000, end: callback, shadeClose: true});
 		};
-
 		/**
-		 * 状态消息
+		 * 状态消息提示
 		 * @param msg 消息内容
 		 * @param time 显示时间
 		 * @param callback 回调函数
 		 * @returns layer
 		 */
 		this.tips = function (msg, time, callback) {
-			this.close();
-			return this.index = layer.msg(msg, {
-				time: (time || 3) * 1000,
-				shade: this.shade,
-				end: callback,
-				shadeClose: true
-			});
+			return this.index = layer.msg(msg, {time: (time || 3) * 1000, shade: this.shade, end: callback, shadeClose: true});
 		};
-
 		/**
 		 * 显示正在加载中的提示
 		 * @param msg 提示内容
@@ -144,12 +110,8 @@ define(['jquery'], function () {
 		 * @returns layer
 		 */
 		this.loading = function (msg, callback) {
-			this.close();
-			return this.index = msg
-				? layer.msg(msg, {icon: 16, scrollbar: false, shade: this.shade, time: 0, end: callback})
-				: layer.load(2, {time: 0, scrollbar: false, shade: this.shade, end: callback});
+			return this.index = msg ? layer.msg(msg, {icon: 16, scrollbar: false, shade: this.shade, time: 0, end: callback}) : layer.load(2, {time: 0, scrollbar: false, shade: this.shade, end: callback});
 		};
-
 		/**
 		 * 自动处理显示Think返回的Json数据
 		 * @param data JSON数据对象
@@ -157,40 +119,66 @@ define(['jquery'], function () {
 		 * @returns {layer}
 		 */
 		this.auto = function (data, time) {
-			var self = this;
 			if (parseInt(data.code) === 1) {
 				return self.success(data.msg, time, function () {
 					!!data.url ? (window.location.href = data.url) : $.form.reload();
-					if (self.autoSuccessCloseIndexs && self.autoSuccessCloseIndexs.length > 0) {
-						for (var i in self.autoSuccessCloseIndexs) {
-							layer.close(self.autoSuccessCloseIndexs[i]);
-						}
-						self.autoSuccessCloseIndexs = [];
+					self.close();
+					for (var i in self.successNeedCloseLayerIndex) {
+						layer.close(self.successNeedCloseLayerIndex[i]);
 					}
+					self.successNeedCloseLayerIndex = [];
 				});
 			}
-			self.error(data.msg, 3, function () {
+			return self.error(data.msg, 3, function () {
 				!!data.url && (window.location.href = data.url);
 			});
 		};
-
-		/**
-		 * 添加auto方法处理成功后自动关闭
-		 * @param index
-		 */
-		this.addAutoSuccessCloseIndex = function (index) {
-			this.autoSuccessCloseIndexs = this.autoSuccessCloseIndexs || [];
-			this.autoSuccessCloseIndexs.push(index);
-		};
-	};
-
-	/* 实例化消息对象 */
-	$.msg = new msg();
+	}
 
 	/* 表单 */
-	var _form = function () {
+	$.form = new _form();
+	function _form() {
 		this.errorMsg = '{status}服务器繁忙，请稍候再试！';
-
+		/**
+		 * 内容区域动态加载后初始化
+		 * @param $container
+		 */
+		this.reInit = function ($container) {
+			$.validate.listen.call(this), JPlaceHolder.init();
+			$container.find('[required]').parent().prevAll('label').addClass('label-required');
+		};
+		/**
+		 * 以hash打开网页
+		 * @param url 路径
+		 * @param obj
+		 */
+		this.href = function (url, obj) {
+			window.location.href = '#' + $.menu.parseUrl(url, obj);
+		};
+		/**
+		 * 显示到中主内容区
+		 * @param html 显示内容
+		 */
+		this.show = function (html) {
+			var $container = $('.framework-container').html(html);
+			timReInit.call(this), setTimeout(timReInit, 500), setTimeout(timReInit, 1000);
+			function timReInit() {
+				$.form.reInit($container);
+			}
+		};
+		/**
+		 * 关闭form框
+		 * @returns
+		 */
+		this.close = function () {
+			return $(this._modal).modal('hide');
+		};
+		/**
+		 * 刷新当前页面
+		 */
+		this.reload = function () {
+			window.onhashchange.call(this);
+		};
 		/**
 		 * 异步加载的数据
 		 * @param url 请求的地址
@@ -206,18 +194,19 @@ define(['jquery'], function () {
 			(loading !== false) && (msgIndex = $.msg.loading(msg));
 			(typeof Pace === 'object') && Pace.restart();
 			$.ajax({
-				type: type || 'GET',
-				url: $.menu.parseUrl(url),
-				data: data || {},
+				type: type || 'GET', url: $.menu.parseUrl(url), data: data || {},
 				statusCode: {
 					404: function () {
+						$.msg.close(msgIndex);
 						$.msg.tips(self.errorMsg.replace('{status}', 'E404 - '));
 					},
 					500: function () {
+						$.msg.close(msgIndex);
 						$.msg.tips(self.errorMsg.replace('{status}', 'E500 - '));
 					}
 				},
 				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$.msg.close(msgIndex);
 					$.msg.tips(self.errorMsg.replace('{status}', 'E' + textStatus + ' - '));
 				},
 				success: function (res) {
@@ -232,18 +221,8 @@ define(['jquery'], function () {
 				}
 			});
 		};
-
 		/**
-		 * 动态事件重载
-		 * @param $container
-		 */
-		this.reInit = function ($container) {
-			$.validate.listen.call(this), JPlaceHolder.init();
-			$container.find('[required]').parent().prevAll('label').addClass('label-required');
-		};
-
-		/**
-		 * 加载到目标位置
+		 * 加载HTML到目标位置
 		 * @param url 请求的地址
 		 * @param data 参数
 		 * @param callback 回调函数
@@ -255,27 +234,25 @@ define(['jquery'], function () {
 				if (typeof (res) === 'object') {
 					return $.msg.auto(res);
 				}
-				var $container = $('.layer-main-container').html(res);
+				var $container = $('.framework-container').html(res);
 				timReInit.call(this), setTimeout(timReInit, 500), setTimeout(timReInit, 1000);
 				return (typeof callback === 'function') && callback.call(this);
-
 				function timReInit() {
 					$.form.reInit($container);
 				}
 			}, loading, msg);
 		};
-
 		/**
-		 * 打开内置页面
-		 * @param url 路径
-		 * @param obj
+		 * 打开一个iFrame窗口
+		 * @param url 请求的地址
+		 * @param title 标题
+		 * @param maxmin 最大最小化
 		 */
-		this.href = function (url, obj) {
-			window.location.href = '#' + $.menu.parseUrl(url, obj);
+		this.iframe = function (url, title, maxmin) {
+			return layer.open({title: title || '窗口', type: 2, area: ['800px', '530px'], fix: true, maxmin: maxmin || false, content: url});
 		};
-
 		/**
-		 * 加载到弹出层
+		 * 加载HTML到弹出层
 		 * @param url 请求的地址
 		 * @param data 参数
 		 * @param title 标题
@@ -288,356 +265,25 @@ define(['jquery'], function () {
 				if (typeof (res) === 'object') {
 					return $.msg.auto(res);
 				}
-				layer.open({
-					type: 1,
-					btn: false,
-					area: "800px",
-					content: res,
-					title: title || '',
-					success: function (dom, index) {
-						// 此窗口完成时需要自动关闭
-						$.msg.addAutoSuccessCloseIndex(index);
-						var $container = $(dom);
-						/* 处理样式及返回按钮事件 */
-						$container.find('[data-close]').off('click').on('click', function () {
+				var layerIndex = layer.open({type: 1, btn: false, area: "800px", content: res, title: title || '', success: function (dom, index) {
+						$(dom).find('[data-close]').off('click').on('click', function () {
 							if ($(this).attr('data-confirm')) {
-								$.msg.confirm($(this).attr('data-confirm'), function () {
+								return $.msg.confirm($(this).attr('data-confirm'), function () {
 									layer.close(index);
 								});
-							} else {
-								layer.close(index);
 							}
+							layer.close(index);
 						});
-						/* 事件重载 */
-						$.form.reInit($container);
+						$.form.reInit($(dom));
 					}
 				});
+				$.msg.successNeedCloseLayerIndex.push(layerIndex);
 				return (typeof callback === 'function') && callback.call(this);
 			}, loading, msg);
 		};
+	}
 
-		/**
-		 * 显示到中主内容区
-		 * @param html 显示内容
-		 */
-		this.show = function (html) {
-			var $container = $('.layer-main-container').html(html);
-			timReInit.call(this), setTimeout(timReInit, 500), setTimeout(timReInit, 1000);
-			function timReInit() {
-				$.form.reInit($container);
-			}
-		};
-
-		/**
-		 * 打开一个iFrame窗口
-		 * @param url 请求的地址
-		 * @param title 标题
-		 * @param maxmin 最大最小化
-		 */
-		this.iframe = function (url, title, maxmin) {
-			return layer.open({
-				title: title || '窗口',
-				type: 2,
-				area: ['800px', '530px'],
-				fix: true,
-				maxmin: maxmin || false,
-				content: url
-			});
-		};
-
-		/**
-		 * 关闭form框
-		 * @returns
-		 */
-		this.close = function () {
-			return $(this._modal).modal('hide');
-		};
-
-		/**
-		 * 刷新当前页面
-		 */
-		this.reload = function () {
-			window.onhashchange.call(this);
-		};
-	};
-
-	/* 实例化表单 */
-	$.form = new _form();
-
-	/* 验证 */
-	var validate = function () {
-		this.inputTag = 'input,textarea,select'; // 表单元素
-		this.checkEvent = {change: true, blur: true, keyup: false}; // 检测元素事件
-
-		/**
-		 * 去除字符串两头的空格
-		 * @param str
-		 * @returns {string|XML|void|*}
-		 */
-		this.trim = function (str) {
-			return str.replace(/(^\s*)|(\s*$)/g, '');
-		};
-
-		/**
-		 * 表单元素是否为空
-		 * @param ele
-		 * @param value
-		 * @returns {boolean}
-		 */
-		this.isEmpty = function (ele, value) {
-			value = value || ele.getAttribute('placeholder');
-			var trimValue = this.trim(ele.value);
-			return (trimValue === "" || trimValue === value);
-		};
-
-		/**
-		 * 标签元素是否可见
-		 * @param ele
-		 * @returns {*|jQuery}
-		 */
-		this.isVisible = function (ele) {
-			return $(ele).is(':visible');
-		};
-
-		/**
-		 * 正则验证表单元素
-		 * @param ele
-		 * @param regex
-		 * @param params
-		 * @returns {boolean}
-		 */
-		this.isRegex = function (ele, regex, params) {
-			// 原始值和处理值
-			var inputValue = ele.value, dealValue = inputValue;
-			var self = this, type = this.getElementType(ele);
-			if (type !== "password") {  // 密码不trim前后空格
-				dealValue = this.trim(inputValue);
-				if (dealValue !== inputValue) {
-					if (ele.tagName.toLowerCase() !== "textarea") {
-						ele.value = dealValue;
-					} else {
-						ele.innerHTML = dealValue;
-					}
-				}
-			}
-			// 获取正则表达式，pattern属性获取优先，然后通过type类型匹配。注意，不处理为空的情况
-			regex = regex || ele.getAttribute('pattern');
-			if (dealValue === "" || !regex) {
-				return true;
-			}
-			// multiple多数据的处理
-			var isMultiple = this.hasProp(ele, 'multiple'), newRegExp = new RegExp(regex, params || 'i');
-			// number类型下multiple是无效的
-			if (isMultiple && !/^number|range$/i.test(type)) {
-				var isAllPass = true;
-				var dealValues = dealValue.split(",");
-				for (var i in dealValues) {
-					var partValue = self.trim(dealValues[i]);
-					if (isAllPass && !newRegExp.test(partValue)) {
-						isAllPass = false;
-					}
-				}
-				return isAllPass;
-			} else {
-				return newRegExp.test(dealValue);
-			}
-		};
-
-		/**
-		 * 检侧所的表单元素
-		 * @param elements
-		 * @param options
-		 * @returns {boolean}
-		 */
-		this.isAllPass = function (elements, options) {
-			if (!elements) {
-				return true;
-			}
-			var allpass = true, self = this, params = options || {};
-			if (elements.size && elements.size() === 1 && elements.get(0).tagName.toLowerCase() === "form") {
-				elements = $(elements).find(self.inputTag);
-			} else if (elements.tagName && elements.tagName.toLowerCase() === "form") {
-				elements = $(elements).find(self.inputTag);
-			}
-			elements.each(function () {
-				if (self.checkInput(this, params) === false) {
-					return $(this).focus(), (allpass = false);
-				}
-			});
-			return allpass;
-		};
-
-		/**
-		 * 获取表单元素的类型
-		 * @param ele
-		 * @returns {string}
-		 */
-		this.getElementType = function (ele) {
-			return (ele.getAttribute("type") + "").replace(/\W+$/, "").toLowerCase();
-		};
-
-		/**
-		 * 检测属性是否有定义
-		 * @param ele
-		 * @param prop 属性名称
-		 * @param undefined
-		 * @returns {boolean}
-		 */
-		this.hasProp = function (ele, prop, undefined) {
-			if (typeof prop !== "string") return false;
-			var attrProp = ele.getAttribute(prop);
-			return (attrProp !== undefined && attrProp !== null && attrProp !== false)
-		};
-
-		/**
-		 * 获取错误提示的内容
-		 * @param ele
-		 * @returns {string|string}
-		 */
-		this.getErrorMsg = function (ele) {
-			return ele.getAttribute('title') || '';
-		};
-
-		/**
-		 * 验证标志
-		 * @param input
-		 * @param type
-		 * @param tag
-		 * @returns {boolean}
-		 */
-		this.remind = function (input, type, tag) {
-			var text = '';
-			// 如果元素完全显示
-			if (this.isVisible(input)) {
-				if (type === "radio" || type === "checkbox") {
-					this.errorPlacement(input, this.getErrorMsg(input));
-				} else if (tag === "select" || tag === "empty") {
-					// 下拉值为空或文本框文本域等为空
-					this.errorPlacement(input, (tag === "empty" && text) ? "您尚未输入" + text : this.getErrorMsg(input));
-				} else if (/^range|number$/i.test(type) && Number(input.value)) {
-					// 整数值与数值的特殊提示
-					this.errorPlacement(input, "值无效");
-				} else {
-					// 文本框文本域格式不准确
-					var finalText = this.getErrorMsg(input);
-					if (text) {
-						finalText = "您输入的" + text + "格式不准确";
-					}
-					this.errorPlacement(input, finalText);
-				}
-			}
-			return false;
-		};
-
-		/**
-		 * 错误消息标签插入
-		 * @param ele
-		 */
-		this.insertErrorEle = function (ele) {
-			var $html = $('<span style="-webkit-animation-duration:.2s;animation-duration:.2s;padding-right:20px;color:#a94442;position:absolute;right:0;font-size:12px;z-index:2;display:block;width:34px;text-align:center;pointer-events:none"></span>');
-			$html.css({
-				top: $(ele).position().top + 'px', paddingTop: $(ele).css('paddingTop'),
-				paddingBottom: $(ele).css('paddingBottom'), lineHeight: $(ele).css('lineHeight')
-			});
-			$(ele).data('input-info') || $(ele).data('input-info', $html.insertAfter(ele));
-		};
-
-		/**
-		 * 成功消息显示
-		 * @param ele
-		 */
-		this.successPlacement = function (ele) {
-			$(ele).removeClass('validate-error'), this.insertErrorEle(ele);
-			$($(ele).data('input-info')).removeClass('fadeInRight').css({width: '30px'}).html('');
-		};
-
-		/**
-		 * 错误消息显示
-		 * @param ele
-		 * @param content
-		 */
-		this.errorPlacement = function (ele, content) {
-			$(ele).addClass('validate-error'), this.insertErrorEle(ele);
-			$($(ele).data('input-info')).addClass('fadeInRight animated').css({width: 'auto'}).html(content);
-		};
-
-		/**
-		 * 检测表单单元
-		 * @param input
-		 * @param options
-		 * @returns {boolean}
-		 */
-		this.checkInput = function (input, options) {
-			var type = this.getElementType(input);
-			var tag = input.tagName.toLowerCase();
-			var isRequired = this.hasProp(input, "required");
-			var isNone = this.hasProp(input, 'data-auto-none');
-			//无需要验证
-			if (isNone || input.disabled || type === 'submit' || type === 'reset' || type === 'file' || type === 'image' || !this.isVisible(input)) {
-				return;
-			}
-			var allpass = true;
-			// 需要验证的有
-			if (type === "radio" && isRequired) {
-				var eleRadios = input.name ? $("input[type='radio'][name='" + input.name + "']") : $(input);
-				var radiopass = false;
-				eleRadios.each(function () {
-					if (radiopass === false && $(this).is("[checked]")) {
-						radiopass = true;
-					}
-				});
-				if (radiopass === false) {
-					allpass = this.remind(eleRadios.get(0), type, tag);
-				} else {
-					this.successPlacement(input);
-				}
-			} else if (type === "checkbox" && isRequired && !$(input).is("[checked]")) {
-				allpass = this.remind(input, type, tag);
-			} else if (tag === "select" && isRequired && !input.value) {
-				allpass = this.remind(input, type, tag);
-			} else if ((isRequired && this.isEmpty(input)) || !(allpass = this.isRegex(input))) {
-				allpass ? this.remind(input, type, "empty") : this.remind(input, type, tag);
-				allpass = false;
-			} else {
-				this.successPlacement(input);
-			}
-			return allpass;
-		};
-
-		/**
-		 * 表单验证入口
-		 * @param form
-		 * @param callback
-		 * @param options
-		 * @returns {jQuery}
-		 */
-		this.check = function (form, callback, options) {
-			var params = $.extend({}, options || {}), self = this;
-			// 去除HTML默认验证
-			$(form).attr('novalidate', 'novalidate');
-			// 表单元素动态监听
-			$(form).find(self.inputTag).map(function () {
-				var func = function () {
-					self.checkInput(this);
-				};
-				for (var i in self.checkEvent) {
-					if (self.checkEvent[i] === true) {
-						$(this).off(i, func).on(i, func);
-					}
-				}
-			});
-			// 表单提交事情监听
-			$(form).bind("submit", function (event) {
-				if (self.isAllPass($(this).find(self.inputTag), params) && typeof callback === 'function') {
-					callback.call(this, $(form).serialize());
-				}
-				return event.preventDefault(), false;
-			});
-			return $(form).data('validate', this);
-		}
-	};
-
-	/* 实例化方法验证 */
+	/* 实例化验证方法 */
 	$.fn.validate = function (callback, options) {
 		return (new validate()).check(this, callback, options);
 	};
@@ -651,23 +297,17 @@ define(['jquery'], function () {
 	 * 自动监听规则内表单
 	 */
 	$.validate.listen = function () {
-		// 获取当前所有自动表单
 		$('form[data-auto]').map(function () {
-			// 是否已监听
 			if ($(this).attr('data-listen') !== 'true') {
-				// 监听初始化
-				var callback = $(this).attr('data-callback');
-				$(this).attr('data-listen', 'true').validate(function (data) {
-					$.form.load(
-						this.getAttribute('action') || window.location.href,
-						data,
-						this.getAttribute('method') || 'POST',
-						window[callback || '_default_callback'] || undefined,
-						true,
-						this.getAttribute('data-tips') || undefined,
-						this.getAttribute('data-time') || undefined);
+				var callbackname = $(this).attr('data-callback');
+				$(this).attr('data-listen', 'true').validate(function (data) {console.log(data);
+					var method = this.getAttribute('method') || 'POST';
+					var tips = this.getAttribute('data-tips') || undefined;
+					var url = this.getAttribute('action') || window.location.href;
+					var callback = window[callbackname || '_default_callback'] || undefined;
+					var time = this.getAttribute('data-time') || undefined;
+					$.form.load(url, data, method, callback, true, tips, time);
 				});
-				// 初始完成后的处理
 				$(this).find('[data-form-loaded]').map(function () {
 					$(this).html(this.getAttribute('data-form-loaded') || this.innerHTML);
 					$(this).removeAttr('data-form-loaded').removeClass('layui-disabled');
@@ -676,11 +316,195 @@ define(['jquery'], function () {
 		});
 	};
 
-	/**
-	 * 后台菜单
-	 */
-	var menu = function () {
+	/* 表单验证 */
+	var validate = function () {
+		var self = this;
+		this.tags = 'input,textarea,select'; // 表单元素
+		this.checkEvent = {change: true, blur: true, keyup: false}; // 检测元素事件
+		/**
+		 * 去除字符串两头的空格
+		 * @param str
+		 * @returns {string|XML|void|*}
+		 */
+		this.trim = function (str) {
+			return str.replace(/(^\s*)|(\s*$)/g, '');
+		};
+		/**
+		 * 标签元素是否可见
+		 * @param ele
+		 * @returns {*|jQuery}
+		 */
+		this.isVisible = function (ele) {
+			return $(ele).is(':visible');
+		};
+		/**
+		 * 检测属性是否有定义
+		 * @param ele
+		 * @param prop 属性名称
+		 * @returns {boolean}
+		 */
+		this.hasProp = function (ele, prop) {
+			if (typeof prop !== "string") return false;
+			var attrProp = ele.getAttribute(prop);
+			return (typeof attrProp !== 'undefined' && attrProp !== null && attrProp !== false);
+		};
+		/**
+		 * 表单元素是否为空
+		 * @param ele
+		 * @param value
+		 * @returns {boolean}
+		 */
+		this.isEmpty = function (ele, value) {
+			var trimValue = this.trim(ele.value);
+			value = value || ele.getAttribute('placeholder');
+			return (trimValue === "" || trimValue === value);
+		};
+		/**
+		 * 正则验证表单元素
+		 * @param ele
+		 * @param regex
+		 * @param params
+		 * @returns {boolean}
+		 */
+		this.isRegex = function (ele, regex, params) {
+			var inputValue = ele.value, dealValue = this.trim(inputValue);
+			regex = regex || ele.getAttribute('pattern');
+			if (dealValue === "" || !regex) {
+				return true;
+			}
+			if (dealValue !== inputValue) {
+				(ele.tagName.toLowerCase() !== "textarea") ? (ele.value = dealValue) : (ele.innerHTML = dealValue);
+			}
+			return new RegExp(regex, params || 'i').test(dealValue);
+		};
+		/**
+		 * 检侧所的表单元素
+		 * @param elements
+		 * @param options
+		 * @returns {boolean}
+		 */
+		this.isAllPass = function (elements, options) {
+			if (!elements) {
+				return true;
+			}
+			var allpass = true, self = this, params = options || {};
+			if (elements.size && elements.size() === 1 && elements.get(0).tagName.toLowerCase() === "form") {
+				elements = $(elements).find(self.tags);
+			} else if (elements.tagName && elements.tagName.toLowerCase() === "form") {
+				elements = $(elements).find(self.tags);
+			}
+			elements.each(function () {
+				if (self.checkInput(this, params) === false) {
+					return $(this).focus(), (allpass = false);
+				}
+			});
+			return allpass;
+		};
+		/**
+		 * 验证标志
+		 * @param input
+		 * @returns {boolean}
+		 */
+		this.remind = function (input) {
+			return this.isVisible(input) ? this.showError(input, input.getAttribute('title') || '') : false;
+		};
+		/**
+		 * 检测表单单元
+		 * @param input
+		 * @param options
+		 * @returns {boolean}
+		 */
+		this.checkInput = function (input) {
+			var type = (input.getAttribute("type") + "").replace(/\W+$/, "").toLowerCase();
+			var tag = input.tagName.toLowerCase(), isRequired = this.hasProp(input, "required");
+			if (this.hasProp(input, 'data-auto-none') || input.disabled || type === 'submit' || type === 'reset' || type === 'file' || type === 'image' || !this.isVisible(input)) {
+				return;
+			}
+			var allpass = true;
+			if (type === "radio" && isRequired) {
+				var radiopass = false, eleRadios = input.name ? $("input[type='radio'][name='" + input.name + "']") : $(input);
+				eleRadios.each(function () {
+					(radiopass === false && $(this).is("[checked]")) && (radiopass = true);
+				});
+				if (radiopass === false) {
+					allpass = this.remind(eleRadios.get(0), type, tag);
+				} else {
+					this.hideError(input);
+				}
+			} else if (type === "checkbox" && isRequired && !$(input).is("[checked]")) {
+				allpass = this.remind(input, type, tag);
+			} else if (tag === "select" && isRequired && !input.value) {
+				allpass = this.remind(input, type, tag);
+			} else if ((isRequired && this.isEmpty(input)) || !(allpass = this.isRegex(input))) {
+				allpass ? this.remind(input, type, "empty") : this.remind(input, type, tag);
+				allpass = false;
+			} else {
+				this.hideError(input);
+			}
+			return allpass;
+		};
+		/**
+		 * 错误消息显示
+		 * @param ele
+		 * @param content
+		 */
+		this.showError = function (ele, content) {
+			$(ele).addClass('validate-error'), this.insertError(ele);
+			$($(ele).data('input-info')).addClass('fadeInRight animated').css({width: 'auto'}).html(content);
+		};
+		/**
+		 * 错误消息消除
+		 * @param ele
+		 */
+		this.hideError = function (ele) {
+			$(ele).removeClass('validate-error'), this.insertError(ele);
+			$($(ele).data('input-info')).removeClass('fadeInRight').css({width: '30px'}).html('');
+		};
+		/**
+		 * 错误消息标签插入
+		 * @param ele
+		 */
+		this.insertError = function (ele) {
+			var $html = $('<span style="-webkit-animation-duration:.2s;animation-duration:.2s;padding-right:20px;color:#a94442;position:absolute;right:0;font-size:12px;z-index:2;display:block;width:34px;text-align:center;pointer-events:none"></span>');
+			$html.css({top: $(ele).position().top + 'px', paddingBottom: $(ele).css('paddingBottom'), lineHeight: $(ele).css('height')});
+			$(ele).data('input-info') || $(ele).data('input-info', $html.insertAfter(ele));
+		};
+		/**
+		 * 表单验证入口
+		 * @param form
+		 * @param callback
+		 * @param options
+		 * @returns {jQuery}
+		 */
+		this.check = function (form, callback, options) {
+			var params = $.extend({}, options || {});
+			$(form).attr("novalidate", "novalidate");
+			$(form).find(self.tags).map(function () {
+				for (var i in self.checkEvent) {
+					if (self.checkEvent[i] === true) {
+						$(this).off(i, func).on(i, func);
+					}
+				}
+				function func() {
+					self.checkInput(this);
+				}
+			});
+			$(form).bind("submit", function (event) {
+				if (self.isAllPass($(this).find(self.tags), params) && typeof callback === 'function') {
+					if (typeof window['_ckeditor_callback'] === 'function') {
+						window['_ckeditor_callback'].call(this);
+					}
+					callback.call(this, $(form).serialize());
+				}
+				return event.preventDefault(), false;
+			});
+			return $(form).data('validate', this);
+		};
+	};
 
+	/* 后台菜单辅助插件 */
+	$.menu = new menu();
+	function menu() {
 		/**
 		 * 计算地址中有效的URl
 		 * @param url
@@ -691,7 +515,6 @@ define(['jquery'], function () {
 			url = (url.indexOf(window.location.host) !== -1 ? url.split(window.location.host)[1] : url).split('?')[0];
 			return (url.indexOf('#') !== -1 ? url.split('#')[1] : url);
 		};
-
 		/**
 		 * 通过URl查询最有可能的菜单NODE
 		 * @param url
@@ -704,7 +527,6 @@ define(['jquery'], function () {
 			}
 			return /^m\-/.test(node = location.href.replace(/.*spm=([\d\-m]+).*/ig, '$1')) ? node : '';
 		};
-
 		/**
 		 * URL转URI
 		 * @param url
@@ -736,7 +558,6 @@ define(['jquery'], function () {
 			var query = '?' + $.param(params);
 			return url + (query !== '?' ? query : '');
 		};
-
 		/**
 		 * 后台菜单动作初始化
 		 */
@@ -755,7 +576,6 @@ define(['jquery'], function () {
 				var node = this.getAttribute('data-menu-node') || false;
 				node && (parseInt($.cookie(node) || 2) === 2) && $(this).show().parent().addClass('open');
 			});
-
 			/* Mini 菜单模式 Tips 显示 */
 			$('body').on('mouseenter mouseleave', '.framework-sidebar-mini .sidebar-trans .nav-item,.framework-sidebar-mini .sidebar-title', function (e) {
 				$(this).tooltip({
@@ -763,23 +583,18 @@ define(['jquery'], function () {
 					title: $(this).text(), placement: 'right', container: 'body'
 				}).tooltip('show'), (e.type === 'mouseleave') && $(this).tooltip('destroy');
 			});
-
 			/* 切换左侧菜单 */
 			var $menutarget = $('[data-menu-target]').on('click', function () {
 				$menutarget.not($(this).addClass('active')).removeClass('active');
-				var menuNode = $(this).attr('data-menu-target');
-				var $leftmenu = $('[data-menu-box=' + menuNode + ']').removeClass('hide');
-				$("[data-menu-box]").not($leftmenu).addClass('hide');
-				$leftmenu.find('[data-open]:first').trigger('click')
+				var menuNode = $(this).attr('data-menu-target'), $left = $('[data-menu-box=' + menuNode + ']').removeClass('hide');
+				$("[data-menu-box]").not($left).addClass('hide'), $left.find('[data-open]:first').trigger('click')
 			});
-
 			/* 左侧菜单样式切换 */
 			var $targetmenu = $('.sidebar-fold').on('click', function () {
 				var $body = $('.framework-body').toggleClass('framework-sidebar-mini framework-sidebar-full');
 				$.cookie('menu-style', $body.hasClass('framework-sidebar-mini') ? 'mini' : 'full');
 			});
 			($.cookie('menu-style') !== 'mini') && $targetmenu.trigger('click');
-
 			/* URl路由处理 */
 			window.onhashchange = function () {
 				var hash = (window.location.hash || '').substring(1), node = hash.replace(/.*spm=([\d\-m]+).*/ig, "$1");
@@ -791,17 +606,23 @@ define(['jquery'], function () {
 				}
 				/* 顶部菜单选中处理 */
 				var parentNode = [node.split('-')[0], node.split('-')[1]].join('-');
-				$('[data-menu-target]').not($('[data-menu-target="' + parentNode + '"]').addClass('active')).removeClass('active');
+				$('.topbar-home-link').not($('[data-menu-target="' + parentNode + '"]').addClass('active')).removeClass('active');
 				/* 左则菜单处理 */
 				var $menu = $('[data-menu-node="' + node + '"]').eq(0);
 				if ($menu.size() > 0) {
-					$('.framework-container').addClass('framework-sidebar-full');
+					$menu.parents('.main-nav').addClass('open'), $menu.parents('.sidebar-trans').removeClass('hide').show();
 					var $li = $menu.parent('li').addClass('active');
 					$li.parents('.framework-sidebar').find('li.active').not($li).removeClass('active');
-					$menu.parents('.sidebar-trans').removeClass('hide').show();
-					$menu.parents('.main-nav').addClass('open');
 					$menu.parents('[data-menu-box]').removeClass('hide').siblings('[data-menu-box]').addClass('hide');
+					if (/^m\-\d+$/i.test(node)) {
+						$('.framework-sidebar').addClass('hide'), $menu.addClass('active');
+						$('.framework-container').css('left', 0).addClass('framework-sidebar-full');
+					} else {
+						$('.framework-sidebar').removeClass('hide');
+						$('.framework-container').removeAttr('style').addClass('framework-sidebar-full');
+					}
 				} else {
+					$('.framework-sidebar').hide();
 					$('.framework-container').removeClass('framework-sidebar-full');
 				}
 				$.form.open(hash);
@@ -811,7 +632,4 @@ define(['jquery'], function () {
 			window.onhashchange.call(this);
 		};
 	};
-
-	/* 实例后台菜单 */
-	$.menu = new menu();
 });

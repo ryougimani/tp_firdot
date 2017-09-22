@@ -14,26 +14,22 @@ define(['jquery', 'admin.plugs'], function () {
 	/* 注册 data-load 事件行为 */
 	this.$body.on('click', '[data-load]', function () {
 		var url = $(this).attr('data-load'), tips = $(this).attr('data-tips');
-
-		function _goLoad() {
-			$.form.load(url, {}, 'GET', null, true, tips);
-		}
-
 		if ($(this).attr('data-confirm')) {
 			return $.msg.confirm($(this).attr('data-confirm'), _goLoad);
 		}
 		return _goLoad.call(this);
+		function _goLoad() {
+			$.form.load(url, {}, 'GET', null, true, tips);
+		}
 	});
 
 	/* 注册 data-serach 表单搜索行为 */
 	this.$body.on('submit', 'form.form-search', function () {
-		var url = $(this).attr('action');
-		var split = url.indexOf('?') === -1 ? '?' : '&';
+		var url = $(this).attr('action'), split = url.indexOf('?') === -1 ? '?' : '&';
 		if ((this.method || 'get').toLowerCase() === 'get') {
 			window.location.href = '#' + $.menu.parseUrl(url + split + $(this).serialize());
-		} else {
-			$.form.load(url, this, 'post');
 		}
+		$.form.load(url, this, 'post');
 	});
 
 	/* 注册 data-modal 事件行为 (打开一个到弹出层) */
@@ -80,31 +76,27 @@ define(['jquery', 'admin.plugs'], function () {
 	/* 注册 data-href 事件行为 */
 	this.$body.on('click', '[data-href]', function () {
 		var href = $(this).attr('data-href');
-		if (href && href.indexOf('#') !== 0) {
-			window.location.href = href;
-		}
+		(href && href.indexOf('#') !== 0) && (window.location.href = href);
 	});
 
 	/* 注册 data-page-href 事件行为 */
 	this.$body.on('click', 'a[data-page-href]', function () {
-		window.location.href = '#' + $.menu.parseUri(this.href, this);
+		window.location.href = '#' + $.menu.parseUrl(this.href, this);
+	});
+
+	/* 注册 data-file 事件行为 (上传文件界面) */
+	this.$body.on('click', '[data-file]', function () {
+		var method = $(this).attr('data-file') === 'one' ? 'one' : 'mtl';
+		var type = $(this).attr('data-type') || 'jpg,png', field = $(this).attr('data-field') || 'file';
+		var title = $(this).attr('data-title') || '文件上传', upType = $(this).attr('data-upType') || '';
+		var model = $(this).attr('data-model') || '';
+		var url = window.ROOT_URL + '/index.php/admin/plugs/upload/mode/' + method + '.html?mode=' + method + '&upType=' + upType + '&type=' + type + '&field=' + field + '&model=' + model;
+		$.form.iframe(url, title || '文件管理');
 	});
 
 	/* 注册 data-iframe 事件行为 */
 	this.$body.on('click', '[data-iframe]', function () {
 		$.form.iframe($(this).attr('data-iframe'), $(this).attr('data-title') || '窗口');
-	});
-
-	/* 注册 data-file 事件行为 (上传文件界面) */
-	this.$body.on('click', '[data-file]', function () {
-		var type = $(this).attr('data-type') || 'jpg,png';
-		var field = $(this).attr('data-field') || 'file';
-		var method = $(this).attr('data-file') === 'one' ? 'one' : 'mtl';
-		var title = $(this).attr('data-title') || '文件上传';
-		var model = $(this).attr('data-model') || '';
-		var uptype = $(this).attr('data-uptype') || '';
-		var url = window.ROOT_URL + '/index.php/admin/plugs/upload/mode/' + method + '.html?upType=' + uptype + '&model=' + model + '&type=' + type + '&field=' + field;
-		$.form.iframe(url, title || '文件管理');
 	});
 
 	/* 注册 data-icon 事件行为 (图标选择界面) */
@@ -120,9 +112,7 @@ define(['jquery', 'admin.plugs'], function () {
 		var imgWidth = this.getAttribute('data-width') || '480px';
 		img.onload = function () {
 			layer.open({
-				type: 1, area: imgWidth, title: false, closeBtn: 1, skin: 'layui-layer-nobg', shadeClose: true,
-				content: $(img).appendTo('body').css({background: '#fff', width: imgWidth, height: 'auto'}),
-				end: function () {
+				type: 1, area: imgWidth, title: false, closeBtn: 1, skin: 'layui-layer-nobg', shadeClose: true, content: $(img).appendTo('body').css({background: '#fff', width: imgWidth, height: 'auto'}), end: function () {
 					$(img).remove();
 				}
 			});
@@ -141,11 +131,7 @@ define(['jquery', 'admin.plugs'], function () {
 	this.$body.on('click', '[data-phone-view]', function () {
 		var $container = $('<div class="mobile-preview pull-left"><div class="mobile-header">公众号</div><div class="mobile-body"><iframe id="phone-preview" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe></div></div>').appendTo('body');
 		$container.find('iframe').attr('src', this.getAttribute('data-phone-view') || this.href);
-		layer.style(layer.open({
-			type: 1, scrollbar: !1, area: ['330px', '600px'], title: !1, closeBtn: 1, skin: 'layui-layer-nobg',
-			shadeClose: !!1,
-			content: $container,
-			end: function () {
+		layer.style(layer.open({type: 1, scrollbar: !1, area: ['330px', '600px'], title: !1, closeBtn: 1, skin: 'layui-layer-nobg', shadeClose: !!1, content: $container, end: function () {
 				$container.remove();
 			}
 		}), {boxShadow: 'none'});
