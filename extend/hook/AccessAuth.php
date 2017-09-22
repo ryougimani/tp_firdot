@@ -9,7 +9,7 @@
 
 namespace hook;
 
-use service\NodeService;
+use think\Db;
 use think\Request;
 use think\Loader;
 use think\exception\HttpResponseException;
@@ -34,42 +34,50 @@ class AccessAuth {
 		$this->request = Request::instance();
 		// 获取模块、控制器、方法名称
 		list($module, $controller, $action) = [Loader::parseName($this->request->module()), Loader::parseName($this->request->controller()), Loader::parseName($this->request->action())];
-		// 获取当前控制器中的变量
-		$vars = get_class_vars(config('app_namespace') . "\\{$module}\\controller\\" . Loader::parseName($controller, 1));
+		$node = strtolower("{$module}/{$controller}/{$action}");
+		$info = Db::name('SystemNode')->where('node', $node)->find();
+		$access = [
+			'is_auth'  => intval(!empty($info['is_auth'])),
+			'is_login' => empty($info['is_auth']) ? intval(!empty($info['is_login'])) : 1
+		];
 		// 判断是否后台模块
 		if (in_array($module, Config::get('admin_module'))) {
 			// 用户登录状态检查
-			if ((!empty($vars['checkAuth']) || !empty($vars['checkLogin'])) && !session('user')) {
+			if (!empty($access['is_login']) && !session('user')) {
 				if ($this->request->isAjax()) {
-					$result = ['code' => 0, 'msg' => '抱歉, 您还没有登录获取访问权限!', 'data' => '', 'url' => '@admin/login', 'wait' => 3];
-					throw new HttpResponseException(json($result));
+					$this->response('抱歉，您还没有登录获取访问权限！', 0, url('@admin/login'));
 				}
 				throw new HttpResponseException(redirect('@admin/login'));
 			}
-			// 访问权限节点检查
-			if (!empty($vars['checkLogin']) && !NodeService::checkAuthNode("{$module}/{$controller}/{$action}")) {
-				$result = ['code' => 0, 'msg' => '抱歉, 您没有访问该模块的权限!', 'data' => '', 'url' => '', 'wait' => 3];
-				throw new HttpResponseException(json($result));
-			}
 		} else {
 			// 用户登录状态检查
-			if ((!empty($vars['checkAuth']) || !empty($vars['checkLogin'])) && !session('member')) {
-				if ($this->request->isAjax()) {
-					if (!$this->request->isMobile()) {
-						$result = ['code' => 0, 'msg' => '抱歉, 您还没有登录!', 'data' => '', 'url' => '@login', 'wait' => 3];
-						throw new HttpResponseException(json($result));
-					}
+			if (!empty($access['is_login']) && !session('member')) {
+				if ($this->request->isAjax() && !$this->request->isMobile()) {
+					$this->response('抱歉，您还没有登录获取访问权限！', 0, url('@login'));
 				}
 				throw new HttpResponseException(redirect('@login'));
 			}
-			// 访问权限节点检查
-			if (!empty($vars['checkLogin']) && !NodeService::checkAuthNode("{$module}/{$controller}/{$action}")) {
-				$result = ['code' => 0, 'msg' => '抱歉, 您没有访问该模块的权限!', 'data' => '', 'url' => '', 'wait' => 3];
-				throw new HttpResponseException(json($result));
-			}
+		}
+		// 访问权限节点检查
+		if (!empty($access['is_auth']) && !auth($node)) {
+			$this->response('抱歉，您没有访问该模块的权限！', 0);
 		}
 		// 权限正常, 默认赋值
 		$view = View::instance(Config::get('template'), Config::get('view_replace_str'));
 		$view->assign('controlUrl', strtolower("{$module}/{$controller}"));
+	}
+
+	/**
+	 * 返回消息对象
+	 * @access public
+	 * @param string $msg 消息内容
+	 * @param int $code 返回状态码
+	 * @param string $url 跳转URL地址
+	 * @param array $data 数据内容
+	 * @param int $wait
+	 */
+	protected function response($msg, $code = 0, $url = '', $data = [], $wait = 3) {
+		$result = ['code' => $code, 'msg' => $msg, 'data' => $data, 'url' => $url, 'wait' => $wait];
+		throw new HttpResponseException(json($result));
 	}
 }
