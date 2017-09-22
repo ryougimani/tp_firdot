@@ -1,0 +1,70 @@
+{extend name='extra@admin/content'}
+
+{block name="button"}
+<div class="nowrap pull-right" style="margin-top:10px">
+	<button data-modal='{:url("$controlUrl/add")}' data-title="{:lang('add class')}" class='layui-btn layui-btn-small'><i class='fa fa-plus'></i> {:lang('add class')}</button>
+	<button data-update data-field='delete' data-action='{:url("$controlUrl/del")}' class='layui-btn layui-btn-small layui-btn-danger'><i class='fa fa-remove'></i> {:lang('del class')}</button>
+</div>
+{/block}
+
+{block name="content"}
+<form onsubmit="return false;" data-auto="true" method="post">
+	<input type="hidden" value="resort" name="action"/>
+	<table class="table table-hover">
+		<thead>
+		<tr>
+			<th class='list-table-check-td'>
+				<input data-none-auto="" data-check-target='.list-check-box' type='checkbox'/>
+			</th>
+			<th class='list-table-sort-td'>
+				<button type="submit" class="layui-btn layui-btn-normal layui-btn-mini">{:lang('sort')}</button>
+			</th>
+			<th>{:lang('class name')}</th>
+			<th class='visible-lg'>{:lang('class byname')}</th>
+			<th class='visible-lg'>{:lang('class pinyin')}</th>
+			<th class='text-center'>{:lang('state')}</th>
+			<th class='text-center'>{:lang('operation')}</th>
+		</tr>
+		</thead>
+		<tbody>
+		{foreach $list as $key=>$vo}
+		<tr>
+			<td class='list-table-check-td'>
+				<input class="list-check-box" value='{$vo.ids}' type='checkbox'/>
+			</td>
+			<td class='list-table-sort-td'>
+				<input name="_{$vo.id}" value="{$vo.sort}" class="list-sort-input"/>
+			</td>
+			<td>{$vo.spl}{$vo.name}</td>
+			<td class='visible-lg'>{$vo.byname|default="<span style='color:#ccc'>".lang('not byname')."</span>"}</td>
+			<td class='visible-lg'>{$vo.pinyin|default="<span style='color:#ccc'>".lang('not pinyin')."</span>"}</td>
+			<td class='text-center'>
+				{if $vo.status eq 0}
+				<span>{:lang('disabling')}</span>
+				{elseif $vo.status eq 1}
+				<span style="color:#090">{:lang('enabling')}</span>
+				{/if}
+			</td>
+			<td class='text-center nowrap'>
+				{if auth("$controlUrl/edit")}
+				<span class="text-explode">|</span>
+				<a data-modal='{:url("$controlUrl/edit")}?id={$vo.id}' data-title="{:lang('edit class')}" href="javascript:void(0)">{:lang('edit')}</a>
+				{/if}
+				{if $vo.status eq 1 and auth("$controlUrl/disables")}
+				<span class="text-explode">|</span>
+				<a data-update="{$vo.ids}" data-field='status' data-value='0'data-action='{:url("$controlUrl/disables")}' href="javascript:void(0)">{:lang('disables')}</a>
+				{elseif auth("$controlUrl/enables")}
+				<span class="text-explode">|</span>
+				<a data-update="{$vo.ids}" data-field='status' data-value='1' data-action='{:url("$controlUrl/enables")}' href="javascript:void(0)">{:lang('enables')}</a>
+				{/if}
+				{if auth("$controlUrl/del")}
+				<span class="text-explode">|</span>
+				<a data-update="{$vo.ids}" data-field='delete' data-action='{:url("$controlUrl/del")}' href="javascript:void(0)">{:lang('del')}</a>
+				{/if}
+			</td>
+		</tr>
+		{/foreach}
+		</tbody>
+	</table>
+</form>
+{/block}

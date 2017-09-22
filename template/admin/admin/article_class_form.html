@@ -1,0 +1,34 @@
+<form class="layui-form layui-box" style='padding:25px 30px 20px 0' action="__SELF__" data-auto="true" method="post">
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('class parent')}</label>
+		<div class="layui-input-block">
+			<select name='pid' class='layui-select full-width' style='display:block'>
+				{foreach $classes as $class}
+				{eq name='class.id' value='$data.pid|default=0'}
+				<option selected value='{$class.id}'>{$class.spl}{$class.name}</option>
+				{else}
+				<option value='{$class.id}'>{$class.spl}{$class.name}</option>
+				{/eq}
+				{/foreach}
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('class name')}</label>
+		<div class="layui-input-block">
+			<input type="text" name="name" value='{$data.name|default=""}' required="required" title="{:lang('input prompt', ['prompt' => lang('class name')])}" placeholder="{:lang('input prompt', ['prompt' => lang('class name')])}" class="layui-input">
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('class byname')}</label>
+		<div class="layui-input-block">
+			<input type="text" name="byname" value='{$data.byname|default=""}' title="{:lang('input prompt', ['prompt' => lang('class byname')])}" placeholder="{:lang('input prompt', ['prompt' => lang('class byname')])}" class="layui-input">
+		</div>
+	</div>
+	<div class="hr-line-dashed"></div>
+	<div class="layui-form-item text-center">
+		{if isset($data['id'])}<input type='hidden' value='{$data.id}' name='id'/>{/if}
+		<button class="layui-btn" type='submit'>{:lang('save')}</button>
+		<button class="layui-btn layui-btn-danger" type='button' data-confirm="{:lang('cancel confirm')}" data-close>{:lang('cancel')}</button>
+	</div>
+</form>

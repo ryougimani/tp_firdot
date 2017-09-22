@@ -1,0 +1,50 @@
+<form class="layui-form layui-box" style='padding:25px 30px 20px 0' action="__SELF__" data-auto="true" method="post">
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('menu parent')}</label>
+		<div class="layui-input-block">
+			<select name='pid' class='layui-select full-width' style='display:block'>
+				{foreach $menus as $menu}
+				{eq name='menu.id' value='$data.pid|default=0'}
+				<option selected value='{$menu.id}'>{$menu.spl}{$menu.title}</option>
+				{else}
+				<option value='{$menu.id}'>{$menu.spl}{$menu.title}</option>
+				{/eq}
+				{/foreach}
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('menu title')}</label>
+		<div class="layui-input-block">
+			<input type="text" name="title" required="required" title="{:lang('input prompt', ['prompt' => lang('menu title')])}" placeholder="{:lang('input prompt', ['prompt' => lang('menu title')])}" value='{$data.title|default=""}' class="layui-input">
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('menu url')}</label>
+		<div class="layui-input-block">
+			<input type="text" name="url" required="required" title="{:lang('input prompt', ['prompt' => lang('menu url')])}" placeholder="{:lang('input prompt', ['prompt' => lang('menu url')])}" value="{$data.url|default='#'}" class="layui-input typeahead" autocomplete="off" onblur="(this.value === '') && (this.value = '#')">
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">{:lang('menu icon')}</label>
+		<div class="layui-input-inline" style='width:300px'>
+			<input placeholder="{:lang('select icon prompt')}" onchange="$('#icon-preview').get(0).className = this.value" type="text" name="icon" value='{$data.icon|default=""}' class="layui-input">
+		</div>
+		<span class='layui-btn layui-btn-primary' style='padding:0 12px;min-width:45.2px'>
+            <i id='icon-preview' style='font-size:1.2em' class='{$data.icon|default=""}'></i>
+        </span>
+		<button data-icon='icon' type='button' class='layui-btn layui-btn-primary'>{:lang('select icon')}</button>
+	</div>
+	<div class="hr-line-dashed"></div>
+	<div class="layui-form-item text-center">
+		{if isset($data['id'])}<input type='hidden' value='{$data.id}' name='id'/>{/if}
+		<button class="layui-btn" type='submit'>{:lang('save')}</button>
+		<button class="layui-btn layui-btn-danger" type='button' data-confirm="{:lang('cancel confirm')}" data-close>{:lang('cancel')}</button>
+	</div>
+	<script>
+	    require(['bootstrap.typeahead'], function () {
+	        var subjects = JSON.parse('{$nodes|json_encode}');
+	        $('.typeahead').typeahead({source: subjects, items: 5});
+	    });
+	</script>
+</form>

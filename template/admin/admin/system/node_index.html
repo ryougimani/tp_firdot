@@ -1,0 +1,145 @@
+{extend name='extra@admin/content'}
+
+{block name="content"}
+<ul class="nav nav-tabs" role="tablist">
+	<li role="presentation" class="active"><a href="#admin" aria-controls="admin" role="tab" data-toggle="tab">{:lang('admin node')}</a></li>
+	<li role="presentation"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">{:lang('home node')}</a></li>
+</ul>
+<div class="tab-content">
+	<div role="tabpanel" class="tab-pane active" id="admin">
+		<table class="table table-hover">
+			<thead>
+			<tr>
+				<th style="width:20px"></th>
+				<th class='text-left'>{:lang('system node structure')}</th>
+				<th class='text-left'></th>
+				<th>&nbsp;</th>
+			</tr>
+			</thead>
+			<tbody>
+			{foreach $nodes.admin as $key=>$vo}
+			<tr>
+				<td style="width:20px"></td>
+				<td class='text-left nowrap'>
+					{$vo.spl}{$vo.node}
+					{if auth("$controlUrl/save")}
+					&nbsp;<input class='layui-input layui-input-inline title-input' name='title' data-node="{$vo.node}" data-type="admin" value="{$vo.title}" style='height:28px;line-height:28px;width:auto'/>
+					{/if}
+				</td>
+				<td class='text-left nowrap'>
+					{if auth("$controlUrl/save")}
+					<label data-tips-text="{:lang('add login control description')}">
+						{if substr_count($vo['node'],'/')==2}
+						{notempty name='vo.is_login'}
+						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="admin" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)" checked='checked'/>
+						{else}
+						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="admin" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)"/>
+						{/notempty}
+						{:lang('add login control')}
+						{/if}
+					</label>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<label data-tips-text="{:lang('add auth control description')}">
+						{if substr_count($vo['node'],'/')==2}
+						{notempty name='vo.is_auth'}
+						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="admin" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)" checked='checked'/>
+						{else}
+						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="admin" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)"/>
+						{/notempty}
+						{:lang('add auth control')}
+						{/if}
+					</label>
+					{/if}
+				</td>
+				<td style="width:100%"></td>
+			</tr>
+			{/foreach}
+			</tbody>
+		</table>
+	</div>
+	<div role="tabpanel" class="tab-pane" id="home">
+		<table class="table table-hover">
+			<thead>
+			<tr>
+				<th style="width:20px"></th>
+				<th class='text-left'>{:lang('system node structure')}</th>
+				<th class='text-left'></th>
+				<th>&nbsp;</th>
+			</tr>
+			</thead>
+			<tbody>
+			{foreach $nodes.home as $key=>$vo}
+			<tr>
+				<td style="width:20px"></td>
+				<td class='text-left nowrap'>
+					{$vo.spl}{$vo.node}
+					{if auth("$controlUrl/save")}
+					&nbsp;<input class='layui-input layui-input-inline title-input' name='title' data-node="{$vo.node}" data-type="home" value="{$vo.title}" style='height:28px;line-height:28px;width:auto'/>
+					{/if}
+				</td>
+				<td class='text-left nowrap'>
+					{if auth("$controlUrl/save")}
+					<label data-tips-text="{:lang('add login control description')}">
+						{if substr_count($vo['node'],'/')==2}
+						{notempty name='vo.is_login'}
+						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="home" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)" checked='checked'/>
+						{else}
+						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="home" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)"/>
+						{/notempty}
+						{:lang('add login control')}
+						{/if}
+					</label>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<label data-tips-text="{:lang('add auth control description')}">
+						{if substr_count($vo['node'],'/')==2}
+						{notempty name='vo.is_auth'}
+						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="home" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)" checked='checked'/>
+						{else}
+						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="home" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)"/>
+						{/notempty}
+						{:lang('add auth control')}
+						{/if}
+					</label>
+					{/if}
+				</td>
+				<td style="width:100%"></td>
+			</tr>
+			{/foreach}
+			</tbody>
+		</table>
+	</div>
+</div>
+{if auth("$controlUrl/save")}
+<script>
+	$(function () {
+		$('input.title-input').on('blur', function () {
+			var data = {list: [{name: this.name, value: this.value, node: this.getAttribute('data-node'), type: this.getAttribute('data-type')}]};
+			$.form.load('{:url("save")}', data, 'POST', function (ret) {
+				if(ret.code===0){
+					setTimeout(function(){
+						$.form.reload();
+					},3000);
+					$.msg.auto(ret);
+				}
+				return false;
+			});
+		});
+		$('input.check-box').on('click', function () {
+			var data = {list: []};
+			$(this).parent().parent().find('input').map(function () {
+				data.list.push({name: this.name, value: this.checked ? 1 : 0, node: this.getAttribute('data-node'), type: this.getAttribute('data-type')});
+			});
+			$.form.load('{:url("save")}', data, 'POST', function (ret) {
+				if(ret.code===0){
+					setTimeout(function(){
+						$.form.reload();
+					},3000);
+					$.msg.auto(ret);
+				}
+				return false;
+			});
+		});
+	});
+</script>
+{/if}
+{/block}

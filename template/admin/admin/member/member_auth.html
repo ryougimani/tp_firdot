@@ -1,0 +1,31 @@
+<form class="layui-form layui-box" style='padding:25px 30px 20px 0' action="__SELF__" data-auto="true" method="post">
+    <div class="layui-form-item">
+        <label class="layui-form-label">{:lang('member username')}</label>
+        <div class="layui-input-block">
+            {if $data and isset($data.username)}
+            <input type="text" readonly="" disabled="" name="username" value='{$data.username|default=""}' required="required" title="{:lang('input prompt', ['prompt' => lang('member username')])}" placeholder="{:lang('input prompt', ['prompt' => lang('member username')])}" class="layui-input disabled">
+            {else}
+            <input type="text" name="username" value='{$data.username|default=""}' required="required" title="{:lang('input prompt', ['prompt' => lang('member username')])}" placeholder="{:lang('input prompt', ['prompt' => lang('member username')])}" class="layui-input">
+            {/if}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">{:lang('member authorize')}</label>
+        <div class="layui-input-block">
+            {foreach $authorizes as $authorize}
+            {if isset($data['authorize']) && in_array($authorize['id'], $data['authorize'])}
+            <input type="checkbox" checked name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">
+            {else}
+            <input type="checkbox" name="authorize[]" value="{$authorize.id}" title="{$authorize.name}">
+            {/if}
+            {/foreach}
+        </div>
+    </div>
+    <div class="hr-line-dashed"></div>
+    <div class="layui-form-item text-center">
+        {if isset($data['id'])}<input type='hidden' value='{$data.id}' name='id'/>{/if}
+        <button class="layui-btn" type='submit'>{:lang('save')}</button>
+        <button class="layui-btn layui-btn-danger" type='button' data-confirm="{:lang('cancel confirm')}" data-close>{:lang('cancel')}</button>
+    </div>
+    <script>window.form.render();</script>
+</form>

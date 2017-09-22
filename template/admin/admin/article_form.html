@@ -1,0 +1,75 @@
+{extend name="extra@admin/content"}
+
+{block name="content"}
+<form onsubmit="return false;" action="__SELF__" data-auto="true" data-callback method="post" class='form-horizontal layui-form' style='padding-top:20px'>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('article title')}</label>
+		<div class='col-sm-8'>
+			<input type="text" name="title" maxlength="64" required="required" title="{:lang('input prompt', ['prompt' => lang('article title')])}" placeholder="{:lang('input prompt', ['prompt' => lang('article title')])}" value="{$data.title|default=''}" class="layui-input">
+			<p class="help-block">{:lang('article title description')}</p>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('article class')}</label>
+		<div class="col-sm-8">
+			<select name='class_id' required="required" class='layui-select full-width' style='display:block' lay-ignore>
+				{foreach $classes as $class}
+				{eq name='class.id' value='$data.class_id|default=0'}
+				<option selected value='{$class.id}'>{$class.spl}{$class.name}</option>
+				{else}
+				<option value='{$class.id}'>{$class.spl}{$class.name}</option>
+				{/eq}
+				{/foreach}
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('article image')}</label>
+		<div class='col-sm-8'>
+			<img data-tips-image style="height:auto;max-height:32px;min-width:32px" src="{$data.title|default=''}"/>
+			<input type="hidden" name="image" onchange="$(this).prev('img').attr('src', this.value)" value="{$data.image|default=''}" class="layui-input">
+			<a class="btn btn-default" data-file="one" data-type="jpg,png,jpeg" data-field="cover">{:lang('upload image')}</a>
+			<p></p>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('article content')}</label>
+		<div class='col-sm-8'>
+			<textarea name='content' required="required" placeholder="{:lang('input prompt', ['prompt' => lang('article content')])}">{$data.content|default=''}</textarea>
+			<p class="help-block">{:lang('article content description')}</p>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('article description')}</label>
+		<div class='col-sm-8'>
+			<textarea name="description" class="layui-input" placeholder="{:lang('input prompt', ['prompt' => lang('article description')])}" style="height:80px;resize:none;line-height:20px">{$data.description|default=''}</textarea>
+			<p class="help-block">{:lang('article description description')}</p>
+		</div>
+	</div>
+	<div class="hr-line-dashed"></div>
+	<div class="col-sm-4 col-sm-offset-2">
+		<div class="layui-form-item text-center">
+			{if isset($data['id'])}<input type='hidden' value='{$data.id}' name='id'/>{/if}
+			<button class="layui-btn" type='submit'>{:lang('save')}</button>
+			<button class="layui-btn layui-btn-danger" type='button' onclick="window.history.back()">{:lang('cancel')}</button>
+		</div>
+	</div>
+</form>
+{/block}
+
+{block name='script'}
+<script>
+	$(function () {
+		var editor = window.createEditor('[name="content"]');
+		window._ckeditor_callback = function() {
+			$('form').find('[name=content]').val(editor.getData());
+		};
+		window._default_callback = function (data) {
+			$.msg.success(data.msg, 2, function () {
+				window.location.href = '#' + $.menu.parseUrl('{:url("$controlUrl/index")}');
+			});
+			return false;
+		};
+	});
+</script>
+{/block}
