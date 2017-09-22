@@ -28,23 +28,25 @@ class Template {
 	 */
 	public function run(&$params) {
 		$this->request = Request::instance();
-		// 判断类型
 		if ($params['type'] == 'module') {
 			// 获取模块名称
 			list($module) = $params[$params['type']];
-			// 是否手机浏览
-			$theme = $this->request->isMobile() ? 'mobile' . DS : 'default' . DS;
 			// 模板根路径
-			$view_base = Config::get('template.view_base');
-			$view_base && define('TEMPLATE_PATH', $view_base);
-			// 判断是否后台模块
-			if (!in_array($module, Config::get('admin_module'))) {
-				$template_path = empty($view_base) ? '' : $view_base . $theme;
-			} else {
-				$template_path = empty($view_base) ? '' : $view_base;
+			if ($view_base = Config::get('template.view_base')) {
+				// 判断是否后台模块
+				if (in_array($module, Config::get('admin_module'))) {
+					$template_path = $view_base . 'admin' . DS;
+				} else {
+					// 是否手机浏览
+					$type = $this->request->isMobile() ? 'mobile' . DS : 'pc' . DS;
+					// 模板名称
+					$theme = 'default' . DS;
+					$template_path = $view_base . $type . $theme;
+				}
+				// 赋值模板路径
+				Config::set('template.view_base', $template_path);
 			}
-			// 赋值模板路径
-			Config::set('template.view_base', $template_path);
+			//$view_base && define('TEMPLATE_PATH', $view_base);
 		}
 	}
 }
