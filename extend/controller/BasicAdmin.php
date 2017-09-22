@@ -21,10 +21,9 @@ use service\ToolsService;
  */
 class BasicAdmin extends Controller {
 
-	public $title; // 页面标题
-	public $table; // 默认操作数据表
-	public $checkLogin = true; // 默认检查用户登录状态
-	public $checkAuth = true; // 默认检查节点访问权限
+	protected $title; // 页面标题
+	protected $table; // 默认操作数据表
+	protected $lang; // 语言包
 
 	/**
 	 * 当前对象回调成员方法
@@ -48,45 +47,50 @@ class BasicAdmin extends Controller {
 	 * @param bool $isPage 是启用分页
 	 * @param bool $isDisplay 是否直接输出显示
 	 * @param bool $total 总记录数
-	 * @return \think\response\View
+	 * @return mixed
 	 */
-	protected function _list($dbQuery = null, $isPage = true, $isDisplay = false, $total = false) {
+	protected function _list($dbQuery = null, $isPage = true, $isDisplay = true, $total = false) {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
-		// 更新排序
+		// 列表排序默认处理
 		if ($this->request->isPost() && $this->request->post('action') === 'resort') {
 			$data = $this->request->post();
 			unset($data['action']);
 			foreach ($data as $key => &$value) {
 				if (false === $db->where('id', intval(ltrim($key, '_')))->setField('sort', $value)) {
-					$this->error('列表排序失败, 请稍候再试');
+					$this->error(lang('sort error'));
 				}
 			}
-			$this->success('列表排序成功, 正在刷新列表', '');
+			$this->success(lang('sort success'), '');
 		}
 		// 排序
 		if (null === $db->getOptions('order')) {
 			$fields = $db->getTableFields($db->getTable());
-			in_array('sort', $fields) && $db->order('sort asc');
+			$order = ['id' => 'asc'];
+			in_array('sort', $fields) && $order = array_merge(['sort' => 'asc'], $order);
+			$db->order($order);
 		}
 		// 是否分页
 		if ($isPage) {
 			// 获取行数
-			$listRows = $this->request->get('rows', cookie('rows'), 'intval');
+			$listRows = intval($this->request->get('rows', cookie('rows')));
 			// cookie保存行数
 			cookie('rows', $listRows >= 10 ? $listRows : 20);
 			// 查询分页数据
 			$page = $db->paginate($listRows, $total, ['query' => $this->request->get()]);
 			$result['list'] = $page->all();
-			$result['page'] = preg_replace(['|href="(.*?)"|', '|pagination|'], ['data-open="$1" href="javascript:void(0);"', 'pagination pull-right'], $page->render());
+			$result['count'] = $page->count();
+			$pattern = ['|href="(.*?)"|', '|pagination|'];
+			$replacement = ['data-open="$1" href="javascript:void(0);"', 'pagination pull-right'];
+			$result['page'] = preg_replace($pattern, $replacement, $page->render());
 		} else {
 			$result['list'] = $db->select();
 		}
 		// 处理列表数据
-		if (false === $this->_callback('_data_filter', $result['list']) || $isDisplay) {
-			return $result;
+		if (false !== $this->_callback('_data_filter', $result['list']) && $isDisplay) {
+			!empty($this->title) && $this->assign('title', $this->title);
+			return $this->fetch('', $result);
 		}
-		!empty($this->title) && $this->assign('title', $this->title);
-		return view('', $result);
+		return $result;
 	}
 
 	/**
@@ -94,37 +98,36 @@ class BasicAdmin extends Controller {
 	 * @access protected
 	 * @param \think\db\Query|string $dbQuery 数据库查询对象
 	 * @param string $template 模板
-	 * @param string $pk 主键
+	 * @param string $pkField 主键
 	 * @param array $where 查询规则
-	 * @param array $data 扩展数据
-	 * @return \think\response\View
+	 * @param array $extendData 扩展数据
+	 * @return mixed
 	 */
-	protected function _form($dbQuery = null, $template = 'form', $pk = null, $where = [], $data = []) {
+	protected function _form($dbQuery = null, $template = 'form', $pkField = '', $where = [], $extendData = []) {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
 		// 获取主键名称与值
-		empty($pk) && $pk = $db->getPk() ? $db->getPk() : 'id';
-		$pkValue = $this->request->request($pk, isset($where[$pk]) ? $where[$pk] : (isset($data[$pk]) ? $data[$pk] : null));
-		// 获取提交数据并修改
-		if ($this->request->isPost()) {
-			$data = array_merge($this->request->post(), $data, ['create_by' => (empty(session('user.id')) ?: session('user.id'))]);
+		$pk = empty($pkField) ? ($db->getPk() ? $db->getPk() : 'id') : $pkField;
+		$pkValue = $this->request->request($pk, isset($where[$pk]) ? $where[$pk] : (isset($extendData[$pk]) ? $extendData[$pk] : null));
+		// 非POST请求, 获取数据并显示表单页面
+		if (!$this->request->isPost()) {
+			$data = ($pkValue !== null) ? array_merge((array)$db->where($pk, $pkValue)->where($where)->find(), $extendData) : $extendData;
 			if (false !== $this->_callback('_form_filter', $data)) {
-				$result = DataService::save($db, $data, $pk, $where);
-				if (false === $this->_callback('_form_result', $result)) {
-					return $result;
-				}
-				if ($result !== false) {
-					$this->success('恭喜, 数据保存成功!', '');
-				}
-				$this->error('数据保存失败, 请稍候再试!');
+				empty($this->title) || $this->assign('title', $this->title);
+				return $this->fetch($template, ['data' => $data]);
 			}
-		}
-		// 获取页面数据并显示
-		$data = ($pkValue !== null) ? array_merge((array)$db->where($pk, $pkValue)->where($where)->find(), $data) : $data;
-		if (false === $this->_callback('_form_filter', $data)) {
 			return $data;
 		}
-		!empty($this->title) && $this->assign('title', $this->title);
-		return view($template, ['data' => $data]);
+		// POST请求, 数据自动存库
+		$data = array_merge($this->request->post(), $extendData);
+		if (false !== $this->_callback('_form_filter', $data)) {
+			$result = DataService::save($db, $data, $pk, $where);
+			if (false !== $this->_callback('_form_result', $result)) {
+				if ($result !== false) {
+					$this->success(lang('form success'), '');
+				}
+				$this->error(lang('form error'));
+			}
+		}
 	}
 
 	/**
@@ -140,7 +143,7 @@ class BasicAdmin extends Controller {
 			// 判断文件是否存在
 			$file = $this->request->post($inputName);
 			empty($file) && $this->error("请选择导入文件");
-			$file_name = substr($file, stripos($file,'/static') + 1);
+			$file_name = substr($file, stripos($file, '/static') + 1);
 			!file_exists($file_name) && $this->error('文件不存在');
 
 			// 文件读取
@@ -183,34 +186,27 @@ class BasicAdmin extends Controller {
 	 * 表单树形选择
 	 * @access protected
 	 * @param \think\db\Query|string $dbQuery 数据库查询对象
+	 * @param bool $tree 是否树形
 	 * @param string $firstValue 首行值
 	 * @param string $key 键
 	 * @param string $pk 主键
 	 * @param string $ppk 父主键
 	 * @return array|false|\PDOStatement|string|\think\Collection
 	 */
-	protected function _form_tree_select($dbQuery = null, $firstValue = '请选择分类', $key = 'name', $pk = 'id', $ppk = 'pid') {
+	protected function _form_select($dbQuery = null, $tree = false, $firstValue = '请选择分类', $key = 'name', $pk = 'id', $ppk = 'pid') {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
 		// 排序
 		if (null === $db->getOptions('order')) {
 			$fields = $db->getTableFields($db->getTable());
-			in_array('sort', $fields) && $db->order('sort asc');
+			in_array('sort', $fields) && $db->order(['sort' => 'asc']);
 		}
 		$data = $db->where('status', '1')->select();
-		$data[] = [$key => $firstValue, $pk => '0', $ppk => '-1'];
-		$data = ToolsService::listToTable($data, $pk, $ppk);
-		return $data;
-	}
-
-	protected function _form_select($dbQuery = null, $firstValue = '请选择分类', $key = 'name', $pk = 'id') {
-		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
-		// 排序
-		if (null === $db->getOptions('order')) {
-			$fields = $db->getTableFields($db->getTable());
-			in_array('sort', $fields) && $db->order('sort asc');
+		if ($tree) {
+			$data[] = [$key => $firstValue, $pk => '0', $ppk => '-1'];
+			$data = ToolsService::listToTable($data, $pk, $ppk);
+		} else {
+			array_unshift($data, [$key => $firstValue, $pk => '0']);
 		}
-		$data = $db->where('status', '1')->select();
-		array_unshift($data, [$key => $firstValue, $pk => '0']);
 		return $data;
 	}
 }
