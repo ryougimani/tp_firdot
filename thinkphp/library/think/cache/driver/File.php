@@ -189,7 +189,7 @@ class File extends Driver
         if ($this->has($name)) {
             $value = $this->get($name) - $step;
         } else {
-            $value = $step;
+            $value = -$step;
         }
         return $this->set($name, $value, 0) ? $value : false;
     }
@@ -226,7 +226,10 @@ class File extends Driver
         $files = (array) glob($this->options['path'] . ($this->options['prefix'] ? $this->options['prefix'] . DS : '') . '*');
         foreach ($files as $path) {
             if (is_dir($path)) {
-                array_map('unlink', glob($path . '/*.php'));
+                $matches = glob($path . '/*.php');
+                if (is_array($matches)) {
+                    array_map('unlink', $matches);
+                }
                 rmdir($path);
             } else {
                 unlink($path);
