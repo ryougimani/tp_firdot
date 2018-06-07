@@ -10,10 +10,9 @@
 namespace app\admin\controller\system;
 
 use controller\BasicAdmin;
-use service\DataService;
-use service\NodeService;
-use service\ToolsService;
 use think\Db;
+use service\DataService;
+use service\ToolsService;
 
 /**
  * 系统菜单后台管理管理
@@ -28,9 +27,12 @@ class Menu extends BasicAdmin {
 	 * 菜单列表
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public function index() {
-		$this->title = lang('system menu') . lang('index title');
+		$this->title = lang('system_menu_list');
 		$db = Db::name($this->table);
 		return parent::_list($db, false);
 	}
@@ -52,6 +54,11 @@ class Menu extends BasicAdmin {
 	 * 添加菜单
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function add() {
 		return parent::_form($this->table, 'form');
@@ -61,6 +68,11 @@ class Menu extends BasicAdmin {
 	 * 编辑菜单
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function edit() {
 		return parent::_form($this->table, 'form');
@@ -74,7 +86,7 @@ class Menu extends BasicAdmin {
 	protected function _form_filter(&$data) {
 		if ($this->request->isGet()) {
 			// 上级菜单内容处理
-			$menus = $this->_form_select($this->table, true, lang('menu top'), 'title');
+			$menus = $this->_form_select($this->table, true, lang('top_menu'), 'title');
 			foreach ($menus as $key => &$menu) {
 				// 删除3级以上菜单
 				if (substr_count($menu['path'], '-') > 3) {
@@ -88,14 +100,10 @@ class Menu extends BasicAdmin {
 					}
 				}
 			}
-			// 读取系统功能节点
-			$nodes = NodeService::get();
-			foreach ($nodes as $key => $node) {
-				if (empty($node['is_menu'])) {
-					unset($nodes[$key]);
-				}
+			// 设置上级菜单
+			if (!isset($data['pid']) && $this->request->get('pid', '0')) {
+				$data['pid'] = $this->request->get('pid', '0');
 			}
-			$this->assign('nodes', array_column($nodes, 'node'));
 			$this->assign('menus', $menus);
 		}
 	}
@@ -106,9 +114,9 @@ class Menu extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -117,9 +125,9 @@ class Menu extends BasicAdmin {
 	 */
 	public function disables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -128,8 +136,8 @@ class Menu extends BasicAdmin {
 	 */
 	public function del() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

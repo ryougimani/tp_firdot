@@ -23,22 +23,7 @@ class BasicAdmin extends Controller {
 
 	protected $title; // 页面标题
 	protected $table; // 默认操作数据表
-	protected $lang; // 语言包
-
-	/**
-	 * 当前对象回调成员方法
-	 * @access protected
-	 * @param string $method 方法名称
-	 * @param array $data 需要处理的数据
-	 * @return bool
-	 */
-	protected function _callback($method, &$data) {
-		foreach ([$method, "_" . $this->request->action() . "{$method}"] as $_method) {
-			if (method_exists($this, $_method) && false === $this->$_method($data))
-				return false;
-		}
-		return true;
-	}
+	protected $lang; // 语言
 
 	/**
 	 * 列表集成处理方法
@@ -47,48 +32,61 @@ class BasicAdmin extends Controller {
 	 * @param bool $isPage 是启用分页
 	 * @param bool $isDisplay 是否直接输出显示
 	 * @param bool $total 总记录数
-	 * @return mixed
+	 * @param array $result 返回内容
+	 * @return array|string
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
-	protected function _list($dbQuery = null, $isPage = true, $isDisplay = true, $total = false) {
+	protected function _list($dbQuery = null, $isPage = true, $isDisplay = true, $total = false, $result = []) {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
-		// 列表排序默认处理
-		if ($this->request->isPost() && $this->request->post('action') === 'resort') {
-			$data = $this->request->post();
-			unset($data['action']);
-			foreach ($data as $key => &$value) {
-				if (false === $db->where('id', intval(ltrim($key, '_')))->setField('sort', $value)) {
-					$this->error(lang('sort error'));
-				}
-			}
-			$this->success(lang('sort success'), '');
-		}
-		// 排序
+		// 获取列表的排序条件
 		if (null === $db->getOptions('order')) {
-			$fields = $db->getTableFields($db->getTable());
-			$order = ['id' => 'asc'];
-			in_array('sort', $fields) && $order = array_merge(['sort' => 'asc'], $order);
+			$fields = $db->getTableFields();
+			in_array('id', $fields) && $order = ['id' => 'asc'];
+			in_array('sort', $fields) && isset($order) ? $order = array_merge(['sort' => 'asc'], $order) : $order = ['sort' => 'asc'];
 			$db->order($order);
 		}
-		// 是否分页
+		// 是否分页显示
 		if ($isPage) {
-			// 获取行数
-			$listRows = intval($this->request->get('rows', cookie('rows')));
-			// cookie保存行数
-			cookie('rows', $listRows >= 10 ? $listRows : 20);
-			// 查询分页数据
-			$page = $db->paginate($listRows, $total, ['query' => $this->request->get()]);
-			$result['list'] = $page->all();
-			$result['count'] = $page->count();
-			$pattern = ['|href="(.*?)"|', '|pagination|'];
-			$replacement = ['data-open="$1" href="javascript:void(0);"', 'pagination pull-right'];
-			$result['page'] = preg_replace($pattern, $replacement, $page->render());
+			$rows = intval($this->request->get('rows', cookie('admin-rows')));
+			cookie('admin-rows', $rows >= 10 ? $rows : 20);
+			// 使用paginate查询分页
+			$query = $this->request->get();
+			$page = $db->paginate($rows, $total, ['query' => $query]);
+			// 判断是否有数据
+			if (($totalNum = $page->total()) > 0) {
+				// 获取 最大页数
+				list($rowsHTML, $pageHTML, $maxNum) = [[], [], $page->lastPage()];
+				list($maxPage, $rowsOption, $pageOption) = [$page->lastPage(), [], []];
+				foreach ([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200] as $num) {
+					list($query['rows'], $query['page']) = [$num, '1'];
+					$url = url('@admin') . '#' . $this->request->baseUrl() . '?' . http_build_query($query);
+					$rowsOption[] = lang('page rows option', ['url' => $url, 'select' => ($rows === $num ? 'selected' : ''), 'num' => $num]);
+				}
+
+//				for ($i = 1; $i <= $maxPage; $i++) {
+//					list($query['rows'], $query['page']) = [$rows, $i];
+//					$url = url('@admin') . '#' . $this->request->baseUrl() . '?' . http_build_query($query);
+//					$selected = $i === intval($page->currentPage()) ? 'selected' : '';
+//					$pageHTML[] = "<option data-url='{$url}' {$selected} value='{$i}'>{$i}</option>";
+//				}
+				list($pattern, $replacement) = [['|href="(.*?)"|', '|pagination|'], ['data-open="$1"', 'pagination']];
+				//$html = "<span class='pagination-trigger nowrap'>共 {$totalNum} 条记录，每页显示 <select data-auto-none>" . join('', $rowsHTML) . "</select> 条，共 " . ceil($totalNum / $rows) . " 页当前显示第 <select>" . join('', $pageHTML) . "</select> 页。</span>";
+				$pageHtml = lang('page html', ['pageHtml' => preg_replace($pattern, $replacement, $page->render()), 'totalNum' => $totalNum, 'rowsOption' => join('', $rowsOption)]);
+				list($result['total'], $result['list'], $result['page']) = [$totalNum, $page->all(), $pageHtml];
+			} else {
+				list($result['total'], $result['list'], $result['page']) = [$totalNum, $page->all(), $page->render()];
+			}
+//			list($pattern, $replacement) = [['|href="(.*?)"|', '|pagination|'], ['data-open="$1"', 'pagination pull-right']];
+//			list($result['list'], $result['page']) = [$page->all(), preg_replace($pattern, $replacement, $page->render())];
 		} else {
 			$result['list'] = $db->select();
 		}
-		// 处理列表数据
-		if (false !== $this->_callback('_data_filter', $result['list']) && $isDisplay) {
+		// 列表数据处理
+		if (false !== $this->_callback('_data_filter', $result['list'], []) && $isDisplay) {
 			!empty($this->title) && $this->assign('title', $this->title);
-			return $this->fetch('', $result);
+			return view('', $result);
 		}
 		return $result;
 	}
@@ -101,34 +99,57 @@ class BasicAdmin extends Controller {
 	 * @param string $pkField 主键
 	 * @param array $where 查询规则
 	 * @param array $extendData 扩展数据
-	 * @return mixed
+	 * @return array|mixed
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	protected function _form($dbQuery = null, $template = 'form', $pkField = '', $where = [], $extendData = []) {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
 		// 获取主键名称与值
+
 		$pk = empty($pkField) ? ($db->getPk() ? $db->getPk() : 'id') : $pkField;
 		$pkValue = $this->request->request($pk, isset($where[$pk]) ? $where[$pk] : (isset($extendData[$pk]) ? $extendData[$pk] : null));
 		// 非POST请求, 获取数据并显示表单页面
 		if (!$this->request->isPost()) {
 			$data = ($pkValue !== null) ? array_merge((array)$db->where($pk, $pkValue)->where($where)->find(), $extendData) : $extendData;
-			if (false !== $this->_callback('_form_filter', $data)) {
+			if (false !== $this->_callback('_form_filter', $data, [])) {
 				empty($this->title) || $this->assign('title', $this->title);
-				return $this->fetch($template, ['data' => $data]);
+				return view($template, ['data' => $data]);
 			}
 			return $data;
 		}
 		// POST请求, 数据自动存库
 		$data = array_merge($this->request->post(), $extendData);
-		if (false !== $this->_callback('_form_filter', $data)) {
-			$result = DataService::save($db, $data, $pk, $where);
-			if (false !== $this->_callback('_form_result', $result)) {
+		if (false !== $this->_callback('_form_filter', $data, [])) {
+			$result = DataService::save($dbQuery, $data, $pk, $where);
+			if (false !== $this->_callback('_form_result', $result, [])) {
 				if ($result !== false) {
-					$this->success(lang('form success'), '');
+					$this->success(lang('form_success'), '');
 				}
-				$this->error(lang('form error'));
+				$this->error(lang('form_error'));
 			}
 		}
 	}
+
+	/**
+	 * 当前对象回调方法
+	 * @access protected
+	 * @param string $method 方法名称
+	 * @param array $data 需要处理的数据
+	 * @param array $otherData 其他数据
+	 * @return bool
+	 */
+	protected function _callback($method, &$data, $otherData) {
+		foreach ([$method, "_" . $this->request->action() . "{$method}"] as $_method) {
+			if (method_exists($this, $_method) && false === $this->$_method($data, $otherData))
+				return false;
+		}
+		return true;
+	}
+
 
 	/**
 	 * 导入默认操作
@@ -197,8 +218,7 @@ class BasicAdmin extends Controller {
 		$db = is_null($dbQuery) ? Db::name($this->table) : (is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery);
 		// 排序
 		if (null === $db->getOptions('order')) {
-			$fields = $db->getTableFields($db->getTable());
-			in_array('sort', $fields) && $db->order(['sort' => 'asc']);
+			in_array('sort', $db->getTableFields()) && $db->order(['sort' => 'asc']);
 		}
 		$data = $db->where('status', '1')->select();
 		if ($tree) {

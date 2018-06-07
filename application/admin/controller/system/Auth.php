@@ -10,10 +10,10 @@
 namespace app\admin\controller\system;
 
 use controller\BasicAdmin;
+use think\Db;
 use service\DataService;
 use service\NodeService;
 use service\ToolsService;
-use think\Db;
 
 /**
  * 权限管理
@@ -28,9 +28,12 @@ class Auth extends BasicAdmin {
 	 * 权限列表
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public function index() {
-		$this->title = lang('system auth') . lang('index title');
+		$this->title = lang('system_auth_list');
 		return parent::_list($this->table);
 	}
 
@@ -38,6 +41,11 @@ class Auth extends BasicAdmin {
 	 * 权限授权
 	 * @access public
 	 * @return string
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function apply() {
 		$auth_id = $this->request->get('id', '0');
@@ -45,7 +53,7 @@ class Auth extends BasicAdmin {
 		if (method_exists($this, $method)) {
 			return $this->$method($auth_id);
 		}
-		$this->title = lang('auth apply');
+		$this->title = lang('auth');
 		return parent::_form($this->table, 'apply');
 	}
 
@@ -64,13 +72,15 @@ class Auth extends BasicAdmin {
 			}
 		}
 		$all = $this->_apply_filter(ToolsService::listToTree($nodes, 'node', 'pnode', '_sub_'));
-		$this->success(lang('get auth success'), '', $all);
+		$this->success(lang('get_auth_success'), '', $all);
 	}
 
 	/**
 	 * 保存授权节点
 	 * @access protected
 	 * @param $auth_id
+	 * @throws \think\Exception
+	 * @throws \think\exception\PDOException
 	 */
 	protected function _apply_save($auth_id) {
 		list($data, $post) = [[], $this->request->post()];
@@ -79,7 +89,7 @@ class Auth extends BasicAdmin {
 		}
 		Db::name('SystemAuthNode')->where(['auth' => $auth_id])->delete();
 		Db::name('SystemAuthNode')->insertAll($data);
-		$this->success(lang('save auth success'), '');
+		$this->success(lang('save_auth_success'), '');
 	}
 
 	/**
@@ -104,6 +114,11 @@ class Auth extends BasicAdmin {
 	 * 权限添加
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function add() {
 		return parent::_form($this->table, 'form');
@@ -113,6 +128,11 @@ class Auth extends BasicAdmin {
 	 * 权限编辑
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function edit() {
 		return parent::_form($this->table, 'form');
@@ -124,9 +144,9 @@ class Auth extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -135,9 +155,9 @@ class Auth extends BasicAdmin {
 	 */
 	public function disables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -148,8 +168,8 @@ class Auth extends BasicAdmin {
 		if (DataService::update($this->table)) {
 			$id = $this->request->post('id');
 			Db::name('SystemAuthNode')->where('auth', $id)->delete();
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

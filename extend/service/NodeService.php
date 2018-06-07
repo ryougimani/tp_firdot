@@ -10,9 +10,6 @@
 namespace service;
 
 use think\Db;
-use think\Loader;
-use think\Request;
-use think\Config;
 
 /**
  * 权限节服务
@@ -26,28 +23,51 @@ class NodeService {
 	 * @access public
 	 * @param bool $isAdmin
 	 * @return bool|mixed
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public static function applyAuthNode($isAdmin = false) {
 		if ($isAdmin) {
-			if ($authorize = session('user.authorize')) {
-				$authorizes = Db::name('SystemAuth')->where(['id' => ['in', $authorize], 'status' => 1])->column('id');
+			if ($adminId = session('admin.id')) {
+				session('admin', Db::name('SystemUser')->where(['id' => $adminId])->find());
+			}
+			if ($authorize = session('admin.authorize')) {
+				$authorizes = Db::name('SystemAuth')->where('id', 'in', $authorize)->where('status',1)->column('id');
 				if (empty($authorizes)) {
-					return session('user.nodes', []);
+					return session('admin.nodes', []);
 				}
-				$nodes = Db::name('SystemAuthNode')->where(['auth' => ['in', $authorizes]])->column('node');
-				return session('user.nodes', $nodes);
+				$nodes = Db::name('SystemAuthNode')->where('auth','in', $authorizes)->column('node');
+				return session('admin.nodes', $nodes);
 			}
 		} else {
+			if ($memberId = session('member.id')) {
+				session('member', Db::name('Member')->where(['id' => $memberId])->find());
+			}
 			if ($authorize = session('member.authorize')) {
-				$authorizes = Db::name('MemberAuth')->where(['id' => ['in', $authorize], 'status' => 1])->column('id');
+				$authorizes = Db::name('MemberAuth')->where('id', 'in', $authorize)->where('status',1)->column('id');
 				if (empty($authorizes)) {
 					return session('member.nodes', []);
 				}
-				$nodes = Db::name('MemberAuthNode')->where(['auth' => ['in', $authorizes]])->column('node');
+				$nodes = Db::name('MemberAuthNode')->where('auth','in', $authorizes)->column('node');
 				return session('member.nodes', $nodes);
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * 获取授权节点
+	 * @access protected
+	 * @return array|mixed
+	 */
+	protected static function getAuthNode() {
+		$nodes = cache('need_auth_node');
+		if (empty($nodes)) {
+			$nodes = Db::name('SystemNode')->where(['is_auth' => '1'])->column('node');
+			cache('need_auth_node', $nodes);
+		}
+		return $nodes;
 	}
 
 	/**
@@ -58,42 +78,27 @@ class NodeService {
 	 */
 	public static function checkAuthNode($node) {
 		list($module, $controller, $action) = explode('/', str_replace(['?', '=', '&'], '/', $node . '///'));
-		$auth_node = strtolower(trim("{$module}/{$controller}/{$action}", '/'));
+		$currentNode = parse_name("{$module}/{$controller}") . strtolower("/{$action}");
 		// 判断是否后台模块
-		if (in_array($module, Config::get('admin_module'))) {
+		if (in_array($module, app('config')->get('admin_module'))) {
 			// 超级管理员或后台主页
-			if (session('user.username') === 'admin' || stripos($node, 'admin/index') === 0) {
+			if (session('admin.username') === 'admin' || stripos($node, 'admin/index') === 0) {
 				return true;
 			}
 			// 不在权限节点里
-			if (!in_array($auth_node, self::getAuthNode())) {
+			if (!in_array($currentNode, self::getAuthNode())) {
 				return true;
 			}
 			// 有节点权限
-			return in_array($auth_node, (array)session('user.nodes'));
+			return in_array($currentNode, (array)session('admin.nodes'));
 		} else {
 			// 不在权限节点里
-			if (!in_array($auth_node, self::getAuthNode())) {
+			if (!in_array($currentNode, self::getAuthNode())) {
 				return true;
 			}
 			// 有节点权限
-			return in_array($auth_node, (array)session('member.nodes'));
+			return in_array($currentNode, (array)session('member.nodes'));
 		}
-	}
-
-	/**
-	 * 获取授权节点
-	 * @access protected
-	 * @return array|mixed
-	 */
-	protected static function getAuthNode() {
-		cache('need_auth_node', null);
-		$nodes = cache('need_auth_node');
-		if (empty($nodes)) {
-			$nodes = Db::name('SystemNode')->where('is_auth', '1')->column('node');
-			cache('need_auth_node', $nodes);
-		}
-		return $nodes;
 	}
 
 	/**
@@ -110,9 +115,9 @@ class NodeService {
 		//$ignore = ['admin/index', 'admin/login', 'admin/plugs','wechat/api', 'wechat/notify', 'wechat/review',];
 		$ignore = ['admin/login', 'admin/plugs',];
 		// 后台模块
-		$admin_module = config('admin_module');
+		$admin_module = app('config')->get('admin_module');
 		// 树形结构树立
-		foreach (self::getNodeTree(APP_PATH) as $c) {
+		foreach (self::getNodeTree(env('app_path')) as $c) {
 			// 判断是否在忽视列表中
 			foreach ($ignore as $v) {
 				if (stripos($c, $v) === 0) continue 2;
@@ -138,27 +143,30 @@ class NodeService {
 	 * @return array
 	 */
 	protected static function getNodeTree($path, $nodes = []) {
-		foreach (self::_getFilePaths($path) as $file) {
+		foreach (self::getPathFiles($path) as $file) {
 			// 判断是否为控制器
-			if (!preg_match('|/([\w]+)/controller/([\w/]+)|', str_replace(DS, '/', $file), $matches) || count($matches) !== 3)
+			if (!preg_match('|/([\w]+)/controller/([\w/]+)|', str_replace(DIRECTORY_SEPARATOR, '/', $file), $matches) || count($matches) !== 3) {
 				continue;
+			}
 			// 检查类是否已定义
-			$className = config('app_namespace') . str_replace('/', '\\', $matches[0]);
-			if (!class_exists($className)) continue;
+			$className = env('app_namespace') . str_replace('/', '\\', $matches[0]);
+			if (!class_exists($className)) {
+				continue;
+			}
 			// 循环方法去除内部方法加入节点数组
 			foreach (get_class_methods($className) as $actionName) {
-				if ($actionName[0] !== '_') {
+				if (strpos($actionName, '_') !== 0) {
 					// 判断多层控制器
 					if (substr_count($matches[2], '/')) {
 						$temps = explode('/', $matches[2]);
 						foreach ($temps as &$temp) {
-							$temp = Loader::parseName($temp);
+							$temp = parse_name($temp);
 						}
 						$matches[2] = implode('.', $temps);
 					} else {
-						$matches[2] = Loader::parseName($matches[2]);
+						$matches[2] = parse_name($matches[2]);
 					}
-					$nodes[] = strtolower("{$matches[1]}/{$matches[2]}/{$actionName}");
+					$nodes[] = parse_name("{$matches[1]}/{$matches[2]}") . strtolower("/{$actionName}");
 				}
 			}
 		}
@@ -173,14 +181,16 @@ class NodeService {
 	 * @param string $ext 文件后缀
 	 * @return array
 	 */
-	protected static function _getFilePaths($path, $data = [], $ext = 'php') {
+	protected static function getPathFiles($path, $data = [], $ext = 'php') {
 		// 遍历当前目录下的所有文件和目录
 		foreach (scandir($path) as $dir) {
 			// 过滤返回上级目录
-			if ($dir[0] === '.') continue;
+			if (strpos($dir, '.') === 0) {
+				continue;
+			}
 			// 当前是否为路径或PHP文件
-			if (($tmp = realpath($path . DS . $dir)) && (is_dir($tmp) || pathinfo($tmp, PATHINFO_EXTENSION) === $ext)) {
-				is_dir($tmp) ? $data = array_merge($data, self::_getFilePaths($tmp)) : $data[] = $tmp;
+			if (($tmp = realpath($path . DIRECTORY_SEPARATOR . $dir)) && (is_dir($tmp) || pathinfo($tmp, PATHINFO_EXTENSION) === $ext)) {
+				is_dir($tmp) ? $data = array_merge($data, self::getPathFiles($tmp)) : $data[] = $tmp;
 			}
 		}
 		return $data;

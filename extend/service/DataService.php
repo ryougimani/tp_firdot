@@ -23,53 +23,46 @@ class DataService {
 	 * @access public
 	 * @param \think\db\Query|string $dbQuery 数据查询对象
 	 * @param array $data 需要保存或更新的数据
-	 * @param string|array $upKey 条件主键限制
+	 * @param string|array $keys 条件主键限制
 	 * @param array $where 其它的where条件
-	 * @return bool
+	 * @return bool|int
+	 * @throws \think\Exception
+	 * @throws \think\exception\PDOException
 	 */
-	public static function save($dbQuery, $data, $upKey = 'id', $where = []) {
+	public static function save($dbQuery, $data, $keys = 'id', $where = []) {
 		// 实例化查询类
 		$db = is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery;
-		// 获取表字段
-		$fields = $db->getTableFields($db->getTable());
+		// 获取表名和表字段
+		list($table, $fields) = [$db->getTable(), $db->getTableFields()];
+		// 根据条件主键获取查询条件
+		$map = [];
+		if (!empty($keys) && (is_string($keys) || is_array($keys))) {
+			foreach ((is_string($keys) ? explode(',', $keys) : $keys) as $v) {
+				if (is_string($v) && array_key_exists($v, $data)) {
+					$map[$v] = $data[$v];
+				} elseif (is_string($v)) {
+					$map[$v] = null;
+				}
+			}
+		}
 		// 默认字段
 		$defData = [
+			'create_by' => ((!empty(session('admin.id'))) ? session('admin.id') : 0), // 创建人
 			'create_time' => time(), // 创建时间
 			'update_time' => time(), // 更新时间
 		];
-		// 更具表字段获取保存和更新的数据
-		$_data = [];
+		// 根据表字段获取保存或更新的数据
+		$saveData = [];
 		foreach (array_merge($data, $defData) as $k => $v) {
-			in_array($k, $fields) && ($_data[$k] = $v);
+			in_array($k, $fields) && ($saveData[$k] = $v);
 		}
 		// 更新数据
-		if (self::where($db, $data, $upKey, $where)->count()) {
-			unset($_data['create_time'], $_data['create_by']);
-			return self::where($db, $data, $upKey, $where)->update($_data) !== false;
+		if ($db->where($where)->where($map)->count()) {
+			unset($saveData['create_time'], $saveData['create_by']);
+			return Db::table($table)->where($where)->where($map)->update($saveData) !== false;
 		}
 		// 新增数据
-		return self::where($db, $data, $upKey, $where)->insert($_data) !== false;
-	}
-
-	/**
-	 * 应用 where 条件
-	 * @access protected
-	 * @param \think\db\Query $db 数据查询对象
-	 * @param array $data 需要保存或更新的数据
-	 * @param string|array $upKey 条件主键限制
-	 * @param array $where 其它的where条件
-	 * @return \think\db\Query
-	 */
-	protected static function where(&$db, $data, $upKey, $where = []) {
-		foreach ((is_string($upKey) ? explode(',', $upKey) : $upKey) as $v) {
-			// 数据中是否有条件字段
-			if (is_string($v) && array_key_exists($v, $data)) {
-				$db->where($v, $data[$v]);
-			} elseif (is_string($v)) {
-				$db->where($v, null);
-			}
-		}
-		return $db->where($where);
+		return Db::table($table)->insertGetId($saveData);
 	}
 
 	/**
@@ -78,40 +71,33 @@ class DataService {
 	 * @param \think\db\Query|string $dbQuery 数据查询对象
 	 * @param array $where where条件
 	 * @return bool
+	 * @throws \think\Exception
+	 * @throws \think\exception\PDOException
 	 */
-	public static function update($dbQuery, $where = []) {
+	public static function update(&$dbQuery, $where = []) {
+		$request = app('request');
 		// 实例化查询类
 		$db = is_string($dbQuery) ? Db::name($dbQuery) : $dbQuery;
-		// 获取ID
-		$ids = explode(',', input("post.id", ''));
-		// 获取修改字段
-		$field = input('post.field', '');
-		// 获取修改值
-		$value = input('post.value', '');
-		// 获取主键
-		$pk = $db->getPk(['table' => $db->getTable()]);
-		// 设置条件
-		$db->where(empty($pk) ? 'id' : $pk, 'in', $ids);
-		!empty($where) && $db->where($where);
-		// 删除模式
+		// 获取表名和主键
+		list($table, $fields, $pk) = [$db->getTable(), $db->getTableFields(), $db->getPk()];
+		// 获取修改字段和值
+		list($field, $value) = [$request->post('field', ''), $request->post('value', '')];
+		$map[] = empty($pk) ? ['id', 'in', explode(',', $request->post('id', ''))] : [$pk, 'in', explode(',', $request->post($pk, ''))];
+		// 删除模式，如果存在 is_deleted 字段使用软删除
 		if ($field === 'delete') {
-			$fields = $db->getTableFields($db->getTable());
 			if (in_array('is_deleted', $fields)) {
-				// 删除到回收站
-				return false !== $db->update(['is_deleted' => 1]);
+				return Db::table($table)->where($where)->where($map)->update(['is_deleted' => '1']) !== false;
 			}
-			// 直接删除
-			return false !== $db->delete();
+			return Db::table($table)->where($where)->where($map)->delete() !== false;
 		}
 		// 还原模式
 		if ($field === 'restore') {
-			$fields = $db->getTableFields(['table' => $db->getTable()]);
 			if (in_array('is_deleted', $fields)) {
-				return false !== $db->update(['is_deleted' => 0]);
+				return Db::table($table)->where($where)->where($map)->update(['is_deleted' => '0']) !== false;
 			}
 		}
-		// 更新模式
-		return false !== $db->update([$field => $value]);
+		// 更新模式，更新指定字段内容
+		return Db::table($table)->where($where)->where($map)->update([$field => $value]) !== false;
 	}
 
 	/**
@@ -136,9 +122,11 @@ class DataService {
 	/**
 	 * 删除指定序号
 	 * @access public
-	 * @param string $sequence
+	 * @param $sequence
 	 * @param string $type
-	 * @return bool
+	 * @return int
+	 * @throws \think\Exception
+	 * @throws \think\exception\PDOException
 	 */
 	public static function deleteSequence($sequence, $type = 'SYSTEM') {
 		$data = ['sequence' => $sequence, 'type' => strtoupper($type)];

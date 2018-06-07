@@ -1,5 +1,11 @@
 {extend name='extra@admin/content'}
 
+{block name="style"}
+<style>
+.layui-table > thead > tr > th { color: inherit; }
+</style>
+{/block}
+
 {block name="content"}
 <div class="row">
 	<div class="col-lg-6">
@@ -15,11 +21,11 @@
 			<tbody>
 				<tr>
 					<td>TP.FirDot 版本</td>
-					<td>{:systemConfig('app_version')}</td>
+					<td>{:system_config('app_version')}</td>
 				</tr>
 				<tr>
 					<td>ThinkPHP 版本</td>
-					<td>{$Think.const.THINK_VERSION}</td>
+					<td>{$think_ver}</td>
 				</tr>
 				<tr>
 					<td>服务器操作系统</td>

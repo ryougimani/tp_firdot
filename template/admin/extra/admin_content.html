@@ -1,21 +1,21 @@
-<div class="ibox">
+<div class="body-box">
 	{block name="style"}{/block}
-	{if isset($title)}
-	<div class="ibox-title">
+	{present name="title"}
+	<div class="body-box-title">
 		<h5>{$title}</h5>
 		{block name="button"}{/block}
 	</div>
-	{/if}
-	<div class="ibox-content fadeInUp animated">
-		{if isset($alert)}
+	{/present}
+	<div class="body-box-content animated fadeInUp">
+		{present name="alert"}
 		<div class="alert alert-{$alert.type} alert-dismissible" role="alert" style="border-radius:0">
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				<span aria-hidden="true">&times;</span>
 			</button>
-			{if isset($alert['title'])}<p style="font-size:18px;padding-bottom:10px">{$alert.title}</p>{/if}
-			{if isset($alert['content'])}<p style="font-size:14px">{$alert.content}</p>{/if}
+			{present name="alert.title"}<p style="font-size:18px;padding-bottom:10px">{$alert.title}</p>{/present}
+			{present name="alert.content"}<p style="font-size:14px">{$alert.content}</p>{/present}
 		</div>
-		{/if}
+		{/present}
 		{block name="content"}{/block}
 	</div>
 	{block name='script'}{/block}

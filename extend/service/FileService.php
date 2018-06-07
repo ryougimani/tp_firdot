@@ -9,14 +9,13 @@
 
 namespace service;
 
-use think\Config;
+use Exception;
+use OSS\OssClient;
+use OSS\Core\OssException;
 use Qiniu\Auth;
 use Qiniu\Storage\BucketManager;
 use Qiniu\Storage\UploadManager;
-use OSS\OssClient;
-use OSS\Core\OssException;
-use think\Log;
-use Exception;
+use think\facade\Log;
 
 /**
  * 文件存储服务
@@ -54,7 +53,7 @@ class FileService {
 		if (self::hasFile($filename, $storage) === false) {
 			return false;
 		}
-		switch (empty($storage) ? systemConfig('storage_type') : $storage) {
+		switch (empty($storage) ? system_config('storage_type') : $storage) {
 			case 'local':
 				return self::getBaseUrlLocal() . $filename;
 			case 'qiniu':
@@ -62,6 +61,7 @@ class FileService {
 			case 'oss':
 				return self::getBaseUrlOss() . $filename;
 		}
+		throw new \think\Exception('未设置存储方式，无法获取到文件对应URL地址');
 		return false;
 	}
 
@@ -73,17 +73,17 @@ class FileService {
 	 * @return bool
 	 */
 	public static function hasFile($filename, $storage = null) {
-		switch (empty($storage) ? systemConfig('storage_type') : $storage) {
+		switch (empty($storage) ? system_config('storage_type') : $storage) {
 			case 'local':
-				return file_exists(ROOT_PATH . 'static/upload/' . $filename);
+				return file_exists(env('root_path') . 'static'. DIRECTORY_SEPARATOR .'upload' . DIRECTORY_SEPARATOR . $filename);
 			case 'qiniu':
-				$auth = new Auth(systemConfig('storage_qiniu_access_key'), systemConfig('storage_qiniu_secret_key'));
+				$auth = new Auth(system_config('storage_qiniu_access_key'), system_config('storage_qiniu_secret_key'));
 				$bucketMgr = new BucketManager($auth);
-				list($ret, $err) = $bucketMgr->stat(systemConfig('storage_qiniu_bucket'), $filename);
+				list($ret, $err) = $bucketMgr->stat(system_config('storage_qiniu_bucket'), $filename);
 				return $err === null;
 			case 'oss':
-				$ossClient = new OssClient(systemConfig('storage_oss_keyid'), systemConfig('storage_oss_secret'), self::getBaseUrlOss(), true);
-				return $ossClient->doesObjectExist(systemConfig('storage_oss_bucket'), $filename);
+				$ossClient = new OssClient(system_config('storage_oss_keyid'), system_config('storage_oss_secret'), self::getBaseUrlOss(), true);
+				return $ossClient->doesObjectExist(system_config('storage_oss_bucket'), $filename);
 		}
 		return false;
 	}
@@ -94,14 +94,10 @@ class FileService {
 	 * @return string
 	 */
 	public static function getBaseUrlLocal() {
-		$request = request();
-		$base = $request->root();
-		$root = strpos($base, '.') ? ltrim(dirname($base), DS) : $base;
-		if ('' != $root) {
-			$root = '/' . ltrim($root, '/');
-		}
-		//return ($request->isSsl() ? 'https' : 'http') . '://' . $request->host() . "{$root}/static/upload/";
-		return "{$root}/static/upload/";
+//		$root = request()->root(true);
+//		$rootUrl = preg_match('/\.php$/', $root) ? dirname($root) : $root;
+		$rootUrl = request()->rootUrl();
+		return $rootUrl . DIRECTORY_SEPARATOR . 'static'. DIRECTORY_SEPARATOR . 'upload' . DIRECTORY_SEPARATOR;
 	}
 
 	/**
@@ -110,7 +106,18 @@ class FileService {
 	 * @return string
 	 */
 	public static function getBaseUrlQiniu() {
-		return (systemConfig('storage_qiniu_is_https') ? 'https' : 'http') . '://' . systemConfig('storage_qiniu_domain') . '/';
+		switch (strtolower(system_config('storage_qiniu_is_https'))) {
+			case 'https':
+				return 'https://' . system_config('storage_qiniu_domain') . '/';
+			case 'http':
+				return 'http://' . system_config('storage_qiniu_domain') . '/';
+			case 'auto':
+				return '//' . system_config('storage_qiniu_domain') . '/';
+			default:
+				throw new \think\Exception('未设置七牛云文件地址协议');
+		}
+
+		return (system_config('storage_qiniu_is_https') ? 'https' : 'http') . '://' . system_config('storage_qiniu_domain') . '/';
 	}
 
 	/**
@@ -119,7 +126,7 @@ class FileService {
 	 * @return string
 	 */
 	public static function getBaseUrlOss() {
-		return (systemConfig('storage_oss_is_https') ? 'https' : 'http') . '://' . systemConfig('storage_oss_domain') . '/';
+		return (system_config('storage_oss_is_https') ? 'https' : 'http') . '://' . system_config('storage_oss_domain') . '/';
 	}
 
 	/**
@@ -138,8 +145,8 @@ class FileService {
 	 * @return string
 	 */
 	public static function getUploadQiniuUrl($isClient = true) {
-		$region = systemConfig('storage_qiniu_region');
-		$isHttps = !!systemConfig('storage_qiniu_is_https');
+		$region = system_config('storage_qiniu_region');
+		$isHttps = !!system_config('storage_qiniu_is_https');
 		switch ($region) {
 			case '华东':
 				if ($isHttps)
@@ -167,7 +174,7 @@ class FileService {
 	 * @return string
 	 */
 	public static function getUploadOssUrl() {
-		return (request()->isSsl() ? 'https' : 'http') . '://' . systemConfig('storage_oss_domain');
+		return (request()->isSsl() ? 'https' : 'http') . '://' . system_config('storage_oss_domain');
 	}
 
 	/**
@@ -190,18 +197,18 @@ class FileService {
 	 * @return string|null
 	 */
 	public static function readFile($filename, $storage = null) {
-		switch (empty($storage) ? systemConfig('storage_type') : $storage) {
+		switch (empty($storage) ? system_config('storage_type') : $storage) {
 			case 'local':
 				$filepath = ROOT_PATH . 'static/upload/' . $filename;
 				if (file_exists($filepath)) {
 					return file_get_contents($filepath);
 				}
 			case 'qiniu':
-				$auth = new Auth(systemConfig('storage_qiniu_access_key'), systemConfig('storage_qiniu_secret_key'));
+				$auth = new Auth(system_config('storage_qiniu_access_key'), system_config('storage_qiniu_secret_key'));
 				return file_get_contents($auth->privateDownloadUrl(self::getBaseUrlQiniu() . $filename));
 			case 'oss':
-				$ossClient = new OssClient(systemConfig('storage_oss_keyid'), systemConfig('storage_oss_secret'), self::getBaseUrlOss(), true);
-				return $ossClient->getObject(systemConfig('storage_oss_bucket'), $filename);
+				$ossClient = new OssClient(system_config('storage_oss_keyid'), system_config('storage_oss_secret'), self::getBaseUrlOss(), true);
+				return $ossClient->getObject(system_config('storage_oss_bucket'), $filename);
 		}
 		Log::error("通过{$storage}读取文件{$filename}的不存在！");
 		return null;
@@ -216,7 +223,7 @@ class FileService {
 	 * @return array|false
 	 */
 	public static function save($filename, $content, $storage = null) {
-		$type = empty($storage) ? systemConfig('storage_type') : $storage;
+		$type = empty($storage) ? system_config('storage_type') : $storage;
 		if (!method_exists(__CLASS__, $type)) {
 			Log::error("保存存储失败，调用{$type}存储引擎不存在！");
 			return false;
@@ -233,11 +240,11 @@ class FileService {
 	 */
 	public static function local($filename, $content) {
 		try {
-			$filepath = ROOT_PATH . 'static/upload/' . $filename;
+			$filepath = ROOT_PATH . 'static' . DS . 'upload' . DS . $filename;
 			!file_exists(dirname($filepath)) && mkdir(dirname($filepath), '0755', true);
 			if (file_put_contents($filepath, $content)) {
-				$url = pathinfo(request()->baseFile(true), PATHINFO_DIRNAME) . '/static/upload/' . $filename;
-				return ['file' => $filepath, 'hash' => md5_file($filepath), 'key' => "static/upload/{$filename}", 'url' => $url];
+				$url = pathinfo(request()->baseFile(true), PATHINFO_DIRNAME) . 'static' . DS . 'upload' . DS . $filename;
+				return ['file' => $filepath, 'hash' => md5_file($filepath), 'key' => 'static' . DS . 'upload' . DS . $filename, 'url' => $url];
 			}
 		} catch (Exception $err) {
 			Log::error('本地文件存储失败, ' . var_export($err, true));
@@ -253,8 +260,8 @@ class FileService {
 	 * @return array|null
 	 */
 	public static function qiniu($filename, $content) {
-		$auth = new Auth(systemConfig('storage_qiniu_access_key'), systemConfig('storage_qiniu_secret_key'));
-		$token = $auth->uploadToken(systemConfig('storage_qiniu_bucket'));
+		$auth = new Auth(system_config('storage_qiniu_access_key'), system_config('storage_qiniu_secret_key'));
+		$token = $auth->uploadToken(system_config('storage_qiniu_bucket'));
 		$uploadMgr = new UploadManager();
 		list($result, $err) = $uploadMgr->put($token, $filename, $content);
 		if ($err !== null) {
@@ -275,8 +282,8 @@ class FileService {
 	 */
 	public static function oss($filename, $content) {
 		try {
-			$ossClient = new OssClient(systemConfig('storage_oss_keyid'), systemConfig('storage_oss_secret'), self::getBaseUrlOss(), true);
-			$result = $ossClient->putObject(systemConfig('storage_oss_bucket'), $filename, $content);
+			$ossClient = new OssClient(system_config('storage_oss_keyid'), system_config('storage_oss_secret'), self::getBaseUrlOss(), true);
+			$result = $ossClient->putObject(system_config('storage_oss_bucket'), $filename, $content);
 			return ['file' => $filename, 'hash' => $result['content-md5'], 'key' => $filename, 'url' => $result['oss-request-url']];
 		} catch (OssException $err) {
 			Log::error('阿里云OSS文件上传失败, ' . var_export($err, true));
@@ -295,7 +302,7 @@ class FileService {
 		try {
 			$filename = self::getFileName($url, strtolower(pathinfo($url, 4)), 'download/');
 			if (false === $isForce && ($siteUrl = self::getFileUrl($filename, 'local'))) {
-				$realfile = ROOT_PATH . 'static/upload/' . $filename;
+				$realfile = ROOT_PATH . 'static' . DS . 'upload' . DS . $filename;
 				return ['file' => $realfile, 'hash' => md5_file($realfile), 'key' => "static/upload/{$filename}", 'url' => $siteUrl];
 			}
 			return self::local($filename, file_get_contents($url));

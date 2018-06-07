@@ -29,12 +29,12 @@ class Node extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function index() {
+		$this->assign('title', lang('system_node_list'));
 		$this->assign('alert', [
 			'type' => 'danger',
-			'title' => lang('danger title'),
-			'content' => lang('node danger')
+			'title' => lang('danger_title'),
+			'content' => lang('node_danger')
 		]);
-		$this->assign('title', lang('system node') . lang('index title'));
 		// 获取节点数据
 		$nodes = NodeService::get();
 		// 树形表格处理
@@ -60,10 +60,10 @@ class Node extends BasicAdmin {
 					$data['type'] = $vo['type'] == 'home' ? 1 : 0;
 				}
 				!empty($data) && DataService::save($this->table, $data, 'node');
-				$this->success(lang('save success'), '');
+				$this->success(lang('save_success'), '');
 			}
 		} else {
-			$this->error(lang('save error'));
+			$this->error(lang('save_error'));
 		}
 	}
 }

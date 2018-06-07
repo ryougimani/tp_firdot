@@ -86,6 +86,10 @@ class Article extends BasicAdmin {
 		return parent::_form($this->table, 'form');
 	}
 
+	public function auth() {
+		return parent::_form($this->table, 'auth');
+	}
+
 	/**
 	 * 表单数据默认处理
 	 * @access protected
@@ -93,16 +97,26 @@ class Article extends BasicAdmin {
 	 */
 	protected function _form_filter(&$data) {
 		if ($this->request->isPost()) {
-			if (isset($data['tag']) && is_array($data['tag'])) {
-				$data['tag'] = join(',', $data['tag']);
+			if (isset($data['member_authorize']) && is_array($data['member_authorize'])) {
+				$data['member_authorize'] = join(',', $data['member_authorize']);
+			} else {
+				$data['member_authorize'] = '';
 			}
-			$data['description'] = empty($data['description']) ? htmlspecialchars(mb_substr(strip_tags(str_replace(["\s", '　'], '', $data['content'])), 0, 120)) : htmlspecialchars($data['description']);
-			$data['content'] = htmlspecialchars($data['content']);
+			if (isset($data['campus_ids']) && is_array($data['campus_ids'])) {
+				$data['campus_ids'] = join(',', $data['campus_ids']);
+			} else {
+				$data['campus_ids'] = '';
+			}
+			if (isset($data['content'])) {
+				$data['description'] = empty($data['description']) ? htmlspecialchars(mb_substr(strip_tags(str_replace(["\s", '　'], '', $data['content'])), 0, 120)) : $data['description'];
+			}
 		}
 		if ($this->request->isGet()) {
 			// 上级分类内容处理
-			$classes = $this->_form_select($this->table . 'Class', true, lang('class top'));
-			$this->assign('classes', $classes);
+			$this->assign('classes', $this->_form_select($this->table . 'Class', true, lang('class top')));
+
+			isset($data['member_authorize']) && $data['member_authorize'] = explode(',', $data['member_authorize']);
+			$this->assign('member_authorize', Db::name('MemberAuth')->where('status', 1)->select());
 		}
 	}
 
@@ -112,9 +126,9 @@ class Article extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -123,9 +137,9 @@ class Article extends BasicAdmin {
 	 */
 	public function disables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -134,9 +148,9 @@ class Article extends BasicAdmin {
 	 */
 	public function del() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 
 	/**
@@ -156,8 +170,8 @@ class Article extends BasicAdmin {
 	 */
 	public function completeDel() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

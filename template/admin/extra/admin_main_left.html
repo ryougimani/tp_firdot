@@ -1,51 +1,46 @@
-<div class="framework-sidebar hide">
-	<div class="sidebar-content">
-		<div class="sidebar-inner">
-			<div class="sidebar-fold">
-				<span class="glyphicon glyphicon-option-vertical transition"></span>
-			</div>
-			{volist name='menus' id='pmenu'}
-			{notempty name='pmenu.sub'}
-			<div data-menu-box="m-{$pmenu.id}">
-				{volist name='pmenu.sub' id='menu'}
-				<div class="sidebar-nav main-nav">
-					{empty name='menu.sub'}
-					<ul class="sidebar-trans">
-						<li class="nav-item">
-							<a data-menu-node='m-{$pmenu.id}-{$menu.id}' data-open="{$menu.url}"
-							   class="sidebar-trans">
-								<div class="nav-icon sidebar-trans">
-									<span class="{$menu.icon|default='fa fa-link'} transition"></span>
-								</div>
-								<span class="nav-title">{$menu.title}</span>
-							</a>
-						</li>
-					</ul>
-					{else}
-					<div class="sidebar-title">
-						<div class="sidebar-title-inner">
-							<span class="sidebar-title-icon fa fa-caret-right transition"></span>
-							<span class="sidebar-title-text">{$menu.title}</span>
-						</div>
-					</div>
-					<ul class="sidebar-trans" style="display:none" data-menu-node='m-{$pmenu.id}-{$menu.id}'>
-						{volist name='menu.sub' id='submenu'}
-						<li class="nav-item">
-							<a data-menu-node='m-{$pmenu.id}-{$submenu.id}' data-open="{$submenu.url}" class="sidebar-trans">
-								<div class="nav-icon sidebar-trans">
-									<span class="{$submenu.icon|default='fa fa-link'} transition"></span>
-								</div>
-								<span class="nav-title">{$submenu.title}</span>
-							</a>
-						</li>
-						{/volist}
-					</ul>
-					{/empty}
-				</div>
-				{/volist}
-			</div>
-			{/notempty}
-			{/volist}
-		</div>
+<div class="framework-sidebar">
+	<div class="sidebar-fold hidden-xs hidden-sm">
+		<i class="glyphicon glyphicon-option-vertical transition"></i>
 	</div>
+	{foreach $menus as $p_menu}
+	{present name="p_menu.sub"}
+	{notempty name='p_menu.sub'}
+	<div data-menu-sidebar="m-{$p_menu.id}">
+		{foreach $p_menu.sub as $menu}
+		<div class="sidebar-menu open">
+			{present name="menu.sub"}
+			<div class="menu-header" data-menu-header="m-{$p_menu.id}-{$menu.id}">
+				<i class="menu-header-icon fa fa-caret-right transition"></i>
+				<span class="menu-header-text">{$menu.title}</span>
+			</div>
+			<ul class="menu-content" data-menu-content="m-{$p_menu.id}-{$menu.id}">
+				{foreach $menu.sub as $sub_menu}
+				<li class="menu-item" data-menu-item="m-{$p_menu.id}-{$sub_menu.id}">
+					<a data-menu-node='m-{$p_menu.id}-{$sub_menu.id}' data-open="{$sub_menu.url}">
+						<div class="menu-icon">
+							<span class="{$sub_menu.icon|default='fa fa-link'} transition"></span>
+						</div>
+						<span class="menu-title">{$sub_menu.title}</span>
+					</a>
+				</li>
+				{/foreach}
+			</ul>
+			{else}
+			<ul class="menu-content" data-menu-content="m-{$p_menu.id}-{$menu.id}">
+				<li class="menu-item" data-menu-item="m-{$p_menu.id}-{$menu.id}">
+					<a data-menu-node="m-{$p_menu.id}-{$menu.id}" data-open="{$menu.url}">
+						<div class="menu-icon">
+							<i class="{$menu.icon|default='fa fa-link'} transition"></i>
+						</div>
+						<span class="menu-title">{$menu.title}</span>
+					</a>
+				</li>
+			</ul>
+			{/present}
+		</div>
+		{/foreach}
+	</div>
+	{/notempty}
+	{/present}
+	{/foreach}
 </div>

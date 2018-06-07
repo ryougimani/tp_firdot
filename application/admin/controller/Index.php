@@ -13,6 +13,7 @@ use controller\BasicAdmin;
 use service\NodeService;
 use service\ToolsService;
 use think\Db;
+use think\App;
 
 /**
  * 后台入口
@@ -39,11 +40,12 @@ class Index extends BasicAdmin {
 	 * @return \think\response\View
 	 */
 	public function main() {
-		$version = Db::query('select version() as ver');
-		$version = array_pop($version);
-		$this->assign('mysql_ver', $version['ver']);
-		$this->assign('title', '后台首页');
-		return view();
+		$_version = Db::query('select version() as ver');
+		return $this->fetch('', [
+			'title'     => '后台首页',
+			'think_ver' => App::VERSION,
+			'mysql_ver' => array_pop($_version)['ver'],
+		]);
 	}
 
 	/**
@@ -58,6 +60,7 @@ class Index extends BasicAdmin {
 		$menus = ToolsService::listToTree($list);
 		// 过滤权限
 		$menus = $this->_filterMenu($menus);
+		//dump($menus); exit;
 		return $menus;
 	}
 

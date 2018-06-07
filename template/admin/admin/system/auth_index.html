@@ -2,72 +2,69 @@
 
 {block name="button"}
 <div class="nowrap pull-right" style="margin-top:10px">
-    <button data-modal='{:url("$controlUrl/add")}' data-title="{:lang('add auth')}" class='layui-btn layui-btn-small'><i class='fa fa-plus'></i> {:lang('add auth')}</button>
-    <button data-update data-field='delete' data-action='{:url("$controlUrl/del")}' class='layui-btn layui-btn-small layui-btn-danger'><i class='fa fa-remove'></i> {:lang('del auth')}</button>
+	<button data-modal='{:url("$controlUrl/add")}' data-title="{$Think.lang.add_title}" class='layui-btn layui-btn-sm'><i class='fa fa-plus'></i> {$Think.lang.add}</button>
+	<button data-update data-field='delete' data-action='{:url("$controlUrl/del")}' class='layui-btn layui-btn-sm layui-btn-danger'><i class='fa fa-remove'></i> {$Think.lang.delete}</button>
 </div>
 {/block}
 
 {block name="content"}
 <form onsubmit="return false;" data-auto="true" method="post">
-    <input type="hidden" value="resort" name="action"/>
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th class='list-table-check-td'>
-                    <input data-none-auto="" data-check-target='.list-check-box' type='checkbox'/>
-                </th>
-                <th class='list-table-sort-td'>
-                    <button type="submit" class="layui-btn layui-btn-normal layui-btn-mini">{:lang('sort')}</button>
-                </th>
-                <th class='text-center'>{:lang('auth name')}</th>
-                <th class='text-center'>{:lang('auth desc')}</th>
-                <th class='text-center'>{:lang('state')}</th>
-                <th class='text-center'>{:lang('operation')}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {foreach $list as $key=>$vo}
-            <tr>
-                <td class='list-table-check-td'>
-                    <input class="list-check-box" value='{$vo.id}' type='checkbox'/>
-                </td>
-                <td class='list-table-sort-td'>
-                    <input name="_{$vo.id}" value="{$vo.sort}" class="list-sort-input"/>
-                </td>
-                <td class='text-center'>{$vo.name}</td>
-                <td class='text-center'>{$vo.desc|default="<span style='color:#ccc'>".lang('not desc')."</span>"}</td>
-                <td class='text-center'>
-                    {if $vo.status eq 0}
-                    <span>{:lang('disabling')}</span>
-                    {elseif $vo.status eq 1}
-                    <span style="color:#090">{:lang('enabling')}</span>
-                    {/if}
-                </td>
-                <td class='text-center nowrap'>
-                    {if auth("$controlUrl/edit")}
-                    <span class="text-explode">|</span>
-                    <a data-modal='{:url("$controlUrl/edit")}?id={$vo.id}' data-title="{:lang('edit auth')}" href="javascript:void(0)">{:lang('edit')}</a>
-                    {/if}
-                    {if auth("$controlUrl/apply")}
-                    <span class="text-explode">|</span>
-                    <a data-open='{:url("$controlUrl/apply")}?id={$vo.id}' href="javascript:void(0)">{:lang('apply')}</a>
-                    {/if}
-                    {if $vo.status eq 1 and auth("$controlUrl/disables")}
-                    <span class="text-explode">|</span>
-                    <a data-update="{$vo.id}" data-field='status' data-value='0'data-action='{:url("$controlUrl/disables")}' href="javascript:void(0)">{:lang('disables')}</a>
-                    {elseif auth("$controlUrl/enables")}
-                    <span class="text-explode">|</span>
-                    <a data-update="{$vo.id}" data-field='status' data-value='1' data-action='{:url("$controlUrl/enables")}' href="javascript:void(0)">{:lang('enables')}</a>
-                    {/if}
-                    {if auth("$controlUrl/del")}
-                    <span class="text-explode">|</span>
-                    <a data-update="{$vo.id}" data-field='delete' data-action='{:url("$controlUrl/del")}' href="javascript:void(0)">{:lang('del')}</a>
-                    {/if}
-                </td>
-            </tr>
-            {/foreach}
-        </tbody>
-    </table>
-    {if isset($page)}<p>{$page}</p>{/if}
+	{if empty($list)}
+	<p class="help-block text-center well">{$Think.lang.not_data}</p>
+	{else}
+	<input type="hidden" value="resort" name="action"/>
+	<table class="layui-table" lay-skin="line">
+		<thead>
+			<tr>
+				<th class='list-table-check-td'>
+					<input type='checkbox' data-check-all='list-check'/>
+				</th>
+				<th class='list-table-sort-td'>
+					<button type="submit" class="layui-btn layui-btn-normal layui-btn-xs">{$Think.lang.sort}</button>
+				</th>
+				<th class='text-center'>{$Think.lang.name}</th>
+				<th class='text-center'>{$Think.lang.desc}</th>
+				<th class='text-center'>{$Think.lang.state}</th>
+				<th class='text-center'>{$Think.lang.operation}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{foreach $list as $key=>$vo}
+			<tr>
+				<td class='list-table-check-td'>
+					<input type='checkbox' value="{$vo.id}" data-check="list-check"/>
+				</td>
+				<td class='list-table-sort-td'>
+					<input name="_{$vo.id}" value="{$vo.sort}" class="list-sort-input"/>
+				</td>
+				<td class='text-center'>{$vo.name}</td>
+				<td class='text-center'>{$vo.desc|default=$Think.lang.not_desc|raw}</td>
+				<td class='text-center'>
+					{if $vo.status eq 1}
+					<span class="yes" data-update="{$vo.id}" data-field='status' data-value='0' data-action='{:url("$controlUrl/disables")}'><i class="fa fa-check-circle"></i> {$Think.lang.enabling}</span>
+					{elseif $vo.status eq 0}
+					<span class="no" data-update="{$vo.id}" data-field='status' data-value='1' data-action='{:url("$controlUrl/enables")}'><i class="fa fa-ban"></i> {$Think.lang.disabling}</span>
+					{/if}
+				</td>
+				<td class='text-center nowrap'>
+					{if auth("$controlUrl/edit")}
+					<span class="text-explode">|</span>
+					<a data-modal='{:url("$controlUrl/edit")}?id={$vo.id}' data-title="{$Think.lang.edit_title}" href="javascript:void(0)">{$Think.lang.edit}</a>
+					{/if}
+					{if auth("$controlUrl/apply")}
+					<span class="text-explode">|</span>
+					<a data-open='{:url("$controlUrl/apply")}?id={$vo.id}' href="javascript:void(0)">{$Think.lang.apply}</a>
+					{/if}
+					{if auth("$controlUrl/del")}
+					<span class="text-explode">|</span>
+					<a data-update="{$vo.id}" data-field='delete' data-action='{:url("$controlUrl/del")}' href="javascript:void(0)">{$Think.lang.del}</a>
+					{/if}
+				</td>
+			</tr>
+			{/foreach}
+		</tbody>
+	</table>
+	{if isset($page)}<div class="page">{$page|raw}</div>{/if}
+	{/if}
 </form>
 {/block}

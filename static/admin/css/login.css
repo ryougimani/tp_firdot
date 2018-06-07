@@ -34,7 +34,7 @@ html, body { height: 100%; width: 100%; overflow: hidden !important; overflow-y:
 .login-container .header ul li { float: left; margin-left: 20px; line-height: 47px; letter-spacing: 0.5px; }
 .login-container .header ul li a { color: #fff; }
 .login-container .header ul li a:hover { color: #fff; }
-.login-container .container { background: url("../images/login/loginbg3.png") no-repeat center center; width: 100%; height: 585px; overflow: hidden; position: relative; top: 47px; }
+.login-container .container { background: url("../images/login/loginbg3.png") no-repeat center center; width: 100%; height: 585px; overflow: hidden; position: relative; top: 50%; margin-top: -300px; }
 
 /* 登录表单 */
 .login-container .content { width: 692px; height: 336px; background: url("../images/login/logininfo.png") no-repeat; margin: 80px auto auto auto; position: relative; display: block; }

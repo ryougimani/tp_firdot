@@ -1,11 +1,11 @@
-{extend name="extra@admin/content"}
+{extend name="extra@admin/right"}
 
 {block name="content"}
-<form onsubmit="return false;" action="__SELF__" data-auto="true" data-callback method="post" class='form-horizontal layui-form' style='padding-top:20px'>
+<form onsubmit="return false;" action="{:request()->url()}" data-auto="true" data-callback method="post" class='form-horizontal layui-form' style='padding-top:20px'>
 	<div class="form-group">
 		<label class="col-sm-2 control-label">{:lang('article title')}</label>
 		<div class='col-sm-8'>
-			<input type="text" name="title" maxlength="64" required="required" title="{:lang('input prompt', ['prompt' => lang('article title')])}" placeholder="{:lang('input prompt', ['prompt' => lang('article title')])}" value="{$data.title|default=''}" class="layui-input">
+			<input type="text" name="title" maxlength="64" required="required" placeholder="{:lang('input prompt', ['prompt' => lang('article title')])}" value="{$data.title|default=''}" class="layui-input">
 			<p class="help-block">{:lang('article title description')}</p>
 		</div>
 	</div>
@@ -28,7 +28,7 @@
 		<div class='col-sm-8'>
 			<img data-tips-image style="height:auto;max-height:32px;min-width:32px" src="{$data.title|default=''}"/>
 			<input type="hidden" name="image" onchange="$(this).prev('img').attr('src', this.value)" value="{$data.image|default=''}" class="layui-input">
-			<a class="btn btn-default" data-file="one" data-type="jpg,png,jpeg" data-field="cover">{:lang('upload image')}</a>
+			<a class="btn btn-default" data-file="one" data-type="jpg,png,jpeg" data-field="image">{:lang('upload image')}</a>
 			<p></p>
 		</div>
 	</div>
@@ -42,16 +42,30 @@
 	<div class="form-group">
 		<label class="col-sm-2 control-label">{:lang('article description')}</label>
 		<div class='col-sm-8'>
-			<textarea name="description" class="layui-input" placeholder="{:lang('input prompt', ['prompt' => lang('article description')])}" style="height:80px;resize:none;line-height:20px">{$data.description|default=''}</textarea>
+			<textarea name="description" class="layui-textarea" placeholder="{:lang('input prompt', ['prompt' => lang('article description')])}" style="height:80px;resize:none;line-height:20px">{$data.description|default=''}</textarea>
 			<p class="help-block">{:lang('article description description')}</p>
 		</div>
 	</div>
+	{if isset($member_authorize)}
+	<div class="form-group">
+		<label class="col-sm-2 control-label">{:lang('apply')}</label>
+		<div class="col-sm-8 layui-form" style="margin: 5px 0;">
+			{foreach $member_authorize as $authorize}
+			{if isset($data['member_authorize']) && in_array($authorize['id'],$data['member_authorize'])}
+			<input type="checkbox" checked name="member_authorize[]" value="{$authorize.id}" title="{$authorize.name}">
+			{else}
+			<input type="checkbox" name="member_authorize[]" value="{$authorize.id}" title="{$authorize.name}">
+			{/if}
+			{/foreach}
+		</div>
+	</div>
+	{/if}
 	<div class="hr-line-dashed"></div>
 	<div class="col-sm-4 col-sm-offset-2">
 		<div class="layui-form-item text-center">
 			{if isset($data['id'])}<input type='hidden' value='{$data.id}' name='id'/>{/if}
-			<button class="layui-btn" type='submit'>{:lang('save')}</button>
-			<button class="layui-btn layui-btn-danger" type='button' onclick="window.history.back()">{:lang('cancel')}</button>
+			<button class="layui-btn" type='submit'>{$Think.lang.save}</button>
+			<button class="layui-btn layui-btn-danger" type='button' onclick="window.history.back()">{$Think.lang.cancel}</button>
 		</div>
 	</div>
 </form>
@@ -59,17 +73,22 @@
 
 {block name='script'}
 <script>
-	$(function () {
-		var editor = window.createEditor('[name="content"]');
-		window._ckeditor_callback = function() {
-			$('form').find('[name=content]').val(editor.getData());
-		};
-		window._default_callback = function (data) {
-			$.msg.success(data.msg, 2, function () {
-				window.location.href = '#' + $.menu.parseUrl('{:url("$controlUrl/index")}');
-			});
-			return false;
-		};
+	// $(function () {
+	// 	var editor = window.createEditor('[name="content"]');
+	// 	window._ckeditor_callback = function() {
+	// 		$('form').find('[name=content]').val(editor.getData());
+	// 	};
+	// 	window._default_callback = function (data) {
+	// 		$.msg.success(data.msg, 2, function () {
+	// 			window.location.href = '#' + $.menu.parseUrl('{:url("$controlUrl/index")}');
+	// 		});
+	// 		return false;
+	// 	};
+	// 	window.form.render();
+	// });
+	require(['jquery', 'ckeditor'], function () {
+		//window.form.render();
+		window.createEditor('[name="content"]');
 	});
 </script>
 {/block}

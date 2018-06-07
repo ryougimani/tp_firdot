@@ -17,6 +17,40 @@ namespace service;
 class ToolsService {
 
 	/**
+	 * CrossOriginResourceSharing Options 授权处理
+	 * @access public
+	 */
+	public static function CORSOptionsHandler() {
+		if (request()->isOptions()) {
+			header('Access-Control-Allow-Origin:*'); // 指定允许其他域名访问
+			header('Access-Control-Allow-Headers:Accept,Referer,Host,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type,Cookie,token'); // 响应头设置
+			header('Access-Control-Allow-Credentials:true');
+			header('Access-Control-Allow-Methods:GET,POST,OPTIONS'); // 响应类型
+			header('Access-Control-Max-Age:1728000');
+			header('Content-Type:text/plain charset=UTF-8');
+			header('Content-Length: 0', true);
+			header('status: 204');
+			header('HTTP/1.0 204 No Content');
+			exit;
+		}
+	}
+
+	/**
+	 * CrossOriginResourceSharing Request Header信息
+	 * @access public
+	 * @return array
+	 */
+	public static function CORSRequestHeader() {
+		return [
+			'Access-Control-Allow-Origin'      => '*',
+			'Access-Control-Allow-Credentials' => true,
+			'Access-Control-Allow-Methods'     => 'GET,POST,OPTIONS',
+			'Access-Defined-X-Support'         => 'service@cuci.cc',
+			'Access-Defined-X-Servers'         => 'Guangzhou Cuci Technology Co. Ltd',
+		];
+	}
+
+	/**
 	 * 列表转树形
 	 * @access public
 	 * @param array $list 列表数据
@@ -63,6 +97,7 @@ class ToolsService {
 		else
 			$tree = $list;
 		foreach ($tree as $val) {
+			$val['level'] = substr_count($ppath, '-');
 			$val[$path] = $ppath . '-' . $val[$pk];
 			$val['spl'] = str_repeat("&nbsp;&nbsp;&nbsp;├&nbsp;&nbsp;", substr_count($ppath, '-'));
 			if (isset($val['sub'])) {

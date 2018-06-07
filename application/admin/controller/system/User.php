@@ -10,8 +10,8 @@
 namespace app\admin\controller\system;
 
 use controller\BasicAdmin;
-use service\DataService;
 use think\Db;
+use service\DataService;
 use service\ToolsService;
 
 /**
@@ -27,14 +27,17 @@ class User extends BasicAdmin {
 	 * 用户列表
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public function index() {
 		// 设置页面标题
-		$this->title = lang('system user') . lang('index title');
+		$this->title = lang('system_user_list');
 		// 获取到所有GET参数
 		$get = $this->request->get();
 		// 实例Query对象
-		$db = Db::name($this->table)->where('is_deleted', '0');
+		$db = Db::name($this->table)->order(['id' => 'desc'])->where('is_deleted', '0');
 		// 应用搜索条件
 		foreach (['username', 'phone'] as $key) {
 			if (isset($get[$key]) && $get[$key] !== '') {
@@ -51,8 +54,10 @@ class User extends BasicAdmin {
 	 * @param array $data
 	 */
 	protected function _data_filter(&$data) {
+		$this->assign('authorizes', Db::name('SystemAuth')->column('name','id'));
 		foreach ($data as &$val) {
 			isset($val['login_time']) && $val['login_time'] = date('Y-m-d H:i:s', $val['login_time']);
+			isset($val['authorize']) && $val['authorize'] = explode(',', $val['authorize']);
 		}
 	}
 
@@ -60,6 +65,11 @@ class User extends BasicAdmin {
 	 * 用户添加
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function add() {
 		return parent::_form($this->table, 'form');
@@ -69,6 +79,11 @@ class User extends BasicAdmin {
 	 * 用户编辑
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function edit() {
 		return parent::_form($this->table, 'form');
@@ -78,6 +93,11 @@ class User extends BasicAdmin {
 	 * 授权管理
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function auth() {
 		return parent::_form($this->table, 'auth');
@@ -87,10 +107,15 @@ class User extends BasicAdmin {
 	 * 用户密码修改
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\Exception
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
+	 * @throws \think\exception\PDOException
 	 */
 	public function pass() {
 		if (in_array('10000', explode(',', $this->request->post('id')))) {
-			$this->error(lang('not edit admin'));
+			$this->error(lang('not_edit_admin'));
 		}
 		$this->assign('verify', false);
 		return parent::_form($this->table, 'pass');
@@ -100,6 +125,9 @@ class User extends BasicAdmin {
 	 * 表单数据默认处理
 	 * @access public
 	 * @param array $data
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public function _form_filter(&$data) {
 		if ($this->request->isPost()) {
@@ -130,6 +158,9 @@ class User extends BasicAdmin {
 	 * 密码表单数据处理
 	 * @access protected
 	 * @param array $data
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	protected function _pass_form_filter(&$data) {
 		if ($this->request->isPost()) {
@@ -144,9 +175,9 @@ class User extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -158,9 +189,9 @@ class User extends BasicAdmin {
 			$this->error(lang('not edit admin'));
 		}
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -169,11 +200,11 @@ class User extends BasicAdmin {
 	 */
 	public function del() {
 		if (in_array('10000', explode(',', $this->request->post('id')))) {
-			$this->error(lang('not edit admin'));
+			$this->error(lang('not_edit_admin'));
 		}
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

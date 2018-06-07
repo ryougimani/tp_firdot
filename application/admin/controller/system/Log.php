@@ -10,8 +10,8 @@
 namespace app\admin\controller\system;
 
 use controller\BasicAdmin;
-use service\DataService;
 use think\Db;
+use service\DataService;
 
 /**
  * 系统日志管理
@@ -26,11 +26,14 @@ class Log extends BasicAdmin {
 	 * 日志列表
 	 * @access public
 	 * @return \think\response\View
+	 * @throws \think\db\exception\DataNotFoundException
+	 * @throws \think\db\exception\ModelNotFoundException
+	 * @throws \think\exception\DbException
 	 */
 	public function index() {
-		$this->title = lang('system log') . lang('index title');
+		$this->title = lang('system_log_list');
 		$this->assign('actions', Db::name($this->table)->group('action')->column('action'));
-		$db = Db::name($this->table)->order('id desc');
+		$db = Db::name($this->table)->order(['id' => 'desc']);
 		$get = $this->request->get();
 		foreach (['action', 'content', 'username'] as $key) {
 			if (isset($get[$key]) && $get[$key] !== '') {
@@ -44,13 +47,14 @@ class Log extends BasicAdmin {
 	 * 列表数据处理
 	 * @access public
 	 * @param $data
+	 * @throws \Exception
 	 */
 	protected function _index_data_filter(&$data) {
 		$ip = new \Ip2Region();
 		foreach ($data as &$val) {
 			$result = $ip->btreeSearch($val['ip']);
 			$val['isp'] = isset($result['region']) ? $result['region'] : '';
-			$val['isp'] = str_replace(['|0|0|0|0', '|'], ['', ' '], $val['isp']);
+			$val['isp'] = str_replace(['内网IP', '0', '|'], '', $val['isp']);
 			$val['create_time'] = date('Y-m-d H:i:s', $val['create_time']);
 		}
 	}
@@ -61,8 +65,8 @@ class Log extends BasicAdmin {
 	 */
 	public function del() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

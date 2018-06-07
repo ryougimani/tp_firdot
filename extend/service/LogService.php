@@ -10,7 +10,6 @@
 namespace service;
 
 use think\Db;
-use think\Request;
 
 /**
  * 操作日志服务
@@ -36,12 +35,12 @@ class LogService {
 	 * @return bool
 	 */
 	public static function write($action = '行为', $content = "内容描述") {
-		$request = Request::instance();
+		$request = app('request');
 		$node = strtolower(join('/', [$request->module(), $request->controller(), $request->action()])); // 节点
 		$data = [
 			'ip' => $request->ip(),
 			'node' => $node,
-			'username' => session('user.username'),
+			'username' => session('admin.username'),
 			'action' => $action,
 			'content' => $content,
 			'create_time' => time()

@@ -3,22 +3,30 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="renderer" content="webkit"/>
-	<title>{block name="title"}{$title|default=''}{if !empty($title)}·{/if}{:systemConfig('site_name')}{/block}</title>
+	<title>{block name="title"}{$title|default=''}{if !empty($title)}·{/if}{:system_config('site_name')}{/block}</title>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<link rel="shortcut icon" href="{:systemConfig('browser_icon')}"/>
+	<link rel="shortcut icon" href="{:system_config('browser_icon')}"/>
 	<link rel="stylesheet" href="__STATIC__/plugs/awesome/css/font-awesome.min.css?ver={:date('ymd')}">
 	<link rel="stylesheet" href="__STATIC__/plugs/bootstrap/css/bootstrap.min.css?ver={:date('ymd')}"/>
 	<link rel="stylesheet" href="__STATIC__/plugs/layui/css/layui.css?ver={:date('ymd')}"/>
 	<link rel="stylesheet" href="__STATIC__/admin/css/common.css?ver={:date('ymd')}">
-	<link rel="stylesheet" href="__STATIC__/admin/css/animate.css?ver={:date('ymd')}">
+	<link rel="stylesheet" href="__STATIC__/plugs/animate/animate.css?ver={:date('ymd')}">
 	{block name="style"}{/block}
-	<script src="__STATIC__/plugs/require/require.js?ver={:date('ymd')}"></script>
-	<script src="__STATIC__/admin/app.js?ver={:date('ymd')}"></script>
-	<script>window.ROOT_URL = '__PUBLIC__';</script>
+	<script>
+		window.ROOT_URL = '__ROOT__';
+		$confirmLang = eval('({:json_encode($Think.lang.confirm)})') || {'title':'操作确认','confirm':'确认','cancel':'取消'};
+	</script>
+	<script src="__STATIC__/plugs/pace/pace.min.js?ver={:date('ymd')}"></script>
+	<script src="__STATIC__/plugs/layui/layui.all.js?ver={:date('ymd')}"></script>
+	<script src="__STATIC__/admin/plugs.js?ver={:date('ymd')}"></script>
+	<script src="__STATIC__/plugs/jquery/jquery.cookie.js?ver={:date('ymd')}"></script>
+	<script src="__STATIC__/admin/listen.js?ver={:date('ymd')}"></script>
 </head>
 {block name="bodyTag"}
-<body class="layui-layout-body">
+<body class="framework-box framework-sidebar-full">
 {block name="body"}{/block}
+<script src="__STATIC__/plugs/require/require.js?ver={:date('ymd')}"></script>
+<script src="__STATIC__/admin/app.js?ver={:date('ymd')}"></script>
 {block name="script"}{/block}
 </body>
 {/block}

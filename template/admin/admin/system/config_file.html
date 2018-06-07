@@ -1,16 +1,16 @@
 {extend name="extra@admin/content"}
 
 {block name="content"}
-<form onsubmit="return false;" action="__SELF__" data-auto="true" method="post" class='form-horizontal' style='padding-top:20px'>
+<form onsubmit="return false;" action="{:request()->url()}" data-auto="true" method="post" class='form-horizontal' style='padding-top:20px'>
 	<div class="form-group">
 		<label class="col-sm-2 control-label">Storage <span class="nowrap">(存储引擎)</span></label>
 		<div class='col-sm-8'>
 			<select class="layui-input" name="storage_type" required="required">
-				{if systemConfig('storage_type') eq 'qiniu'}
+				{if system_config('storage_type') eq 'qiniu'}
 				<option value='local'>本地服务器</option>
 				<option value='qiniu' selected="selected">七牛云存储</option>
 				<option value='oss'>AliOSS存储</option>
-				{elseif systemConfig('storage_type') eq 'oss'}
+				{elseif system_config('storage_type') eq 'oss'}
 				<option value='local'>本地服务器</option>
 				<option value='qiniu'>七牛云存储</option>
 				<option value='oss' selected="selected">AliOSS存储</option>
@@ -36,22 +36,22 @@
 		<label class="col-sm-2 control-label">Region <span class="nowrap">(存储区域)</span></label>
 		<div class='col-sm-8'>
 			<select class="layui-input" name="storage_qiniu_region" required="required">
-				{if systemConfig('storage_qiniu_region') eq '华东'}
+				{if system_config('storage_qiniu_region') eq '华东'}
 				<option selected value='华东'>华东</option>
 				{else}
 				<option value='华东'>华东</option>
 				{/if}
-				{if systemConfig('storage_qiniu_region') eq '华北'}
+				{if system_config('storage_qiniu_region') eq '华北'}
 				<option selected value='华北'>华北</option>
 				{else}
 				<option value='华北'>华北</option>
 				{/if}
-				{if systemConfig('storage_qiniu_region') eq '华南'}
+				{if system_config('storage_qiniu_region') eq '华南'}
 				<option selected value='华南'>华南</option>
 				{else}
 				<option value='华南'>华南</option>
 				{/if}
-				{if systemConfig('storage_qiniu_region') eq '北美'}
+				{if system_config('storage_qiniu_region') eq '北美'}
 				<option selected value='北美'>北美</option>
 				{else}
 				<option value='北美'>北美</option>
@@ -64,7 +64,7 @@
 		<label class="col-sm-2 control-label">Protocol <span class="nowrap">(访问协议)</span></label>
 		<div class='col-sm-8'>
 			<select class="layui-input" name="storage_qiniu_is_https" required="required">
-				{if systemConfig('storage_qiniu_is_https')!=='1'}
+				{if system_config('storage_qiniu_is_https')!=='1'}
 				<option selected value='0'>HTTP</option>
 				<option value='1'>HTTPS</option>
 				{else}
@@ -78,7 +78,7 @@
 	<div class="form-group" data-storage-type="qiniu">
 		<label class="col-sm-2 control-label">Bucket <span class="nowrap">(空间名称)</span></label>
 		<div class='col-sm-8'>
-			<input type="text" name="storage_qiniu_bucket" required="required" title="请输入七牛云存储 Bucket (空间名称)" placeholder="请输入七牛云存储 Bucket (空间名称)" value="{:systemConfig('storage_qiniu_bucket')}" class="layui-input">
+			<input type="text" name="storage_qiniu_bucket" required="required" title="请输入七牛云存储 Bucket (空间名称)" placeholder="请输入七牛云存储 Bucket (空间名称)" value="{:system_config('storage_qiniu_bucket')}" class="layui-input">
 			<p class="help-block">填写七牛云存储空间名称，如：static</p>
 		</div>
 	</div>
@@ -86,21 +86,21 @@
 		<label class="col-sm-2 control-label">Domain <span class="nowrap">(访问域名)</span></label>
 		<div class='col-sm-8'>
 			<input type="text" name="storage_qiniu_domain" required="required" title="请输入七牛云存储 Domain (访问域名)"
-			       placeholder="请输入七牛云存储 Domain (访问域名)" value="{:systemConfig('storage_qiniu_domain')}" class="layui-input">
+				   placeholder="请输入七牛云存储 Domain (访问域名)" value="{:system_config('storage_qiniu_domain')}" class="layui-input">
 			<p class="help-block">填写七牛云存储访问域名，如：static.ctolog.cc</p>
 		</div>
 	</div>
 	<div class="form-group" data-storage-type="qiniu">
 		<label class="col-sm-2 control-label">AccessKey <span class="nowrap">(访问密钥)</span></label>
 		<div class='col-sm-8'>
-			<input type="text" name="storage_qiniu_access_key" required="required" title="请输入七牛云 AccessKey (访问密钥)" placeholder="请输入七牛云 AccessKey (访问密钥)" value="{:systemConfig('storage_qiniu_access_key')}" class="layui-input">
+			<input type="text" name="storage_qiniu_access_key" required="required" title="请输入七牛云 AccessKey (访问密钥)" placeholder="请输入七牛云 AccessKey (访问密钥)" value="{:system_config('storage_qiniu_access_key')}" class="layui-input">
 			<p class="help-block">可以在 [ 七牛云 > 个人中心 ] 设置并获取到访问密钥</p>
 		</div>
 	</div>
 	<div class="form-group" data-storage-type="qiniu">
 		<label class="col-sm-2 control-label">SecretKey <span class="nowrap">(安全密钥)</span></label>
 		<div class='col-sm-8'>
-			<input type="password" name="storage_qiniu_secret_key" required="required" title="请输入七牛云 SecretKey (安全密钥)" placeholder="请输入七牛云 SecretKey (安全密钥)" value="{:systemConfig('storage_qiniu_secret_key')}" maxlength="43" class="layui-input">
+			<input type="password" name="storage_qiniu_secret_key" required="required" title="请输入七牛云 SecretKey (安全密钥)" placeholder="请输入七牛云 SecretKey (安全密钥)" value="{:system_config('storage_qiniu_secret_key')}" maxlength="43" class="layui-input">
 			<p class="help-block">可以在 [ 七牛云 > 个人中心 ] 设置并获取到安全密钥</p>
 		</div>
 	</div>
@@ -108,7 +108,7 @@
 		<label class="col-sm-2 control-label">Protocol <span class="nowrap">(访问协议)</span></label>
 		<div class='col-sm-8'>
 			<select class="layui-input" name="storage_oss_is_https" required="required">
-				{if systemConfig('storage_oss_is_https')!=='1'}
+				{if system_config('storage_oss_is_https')!=='1'}
 				<option selected value='0'>HTTP</option>
 				<option value='1'>HTTPS</option>
 				{else}
@@ -122,28 +122,28 @@
 	<div class="form-group" data-storage-type="oss">
 		<label class="col-sm-2 control-label">Bucket <span class="nowrap">(空间名称)</span></label>
 		<div class='col-sm-8'>
-			<input type="text" name="storage_oss_bucket" required="required" title="请输入AliOSS Bucket (空间名称)" placeholder="请输入AliOSS Bucket (空间名称)" value="{:systemConfig('storage_oss_bucket')}" class="layui-input">
+			<input type="text" name="storage_oss_bucket" required="required" title="请输入AliOSS Bucket (空间名称)" placeholder="请输入AliOSS Bucket (空间名称)" value="{:system_config('storage_oss_bucket')}" class="layui-input">
 			<p class="help-block">填写OSS存储空间名称，如：static</p>
 		</div>
 	</div>
 	<div class="form-group" data-storage-type="oss">
 		<label class="col-sm-2 control-label">Domain <span class="nowrap">(访问域名)</span></label>
 		<div class='col-sm-8'>
-			<input type="text" name="storage_oss_domain" required="required" title="请输入AliOSS存储 Domain (访问域名)" placeholder="请输入AliOSS存储 Domain (访问域名)" value="{:systemConfig('storage_oss_domain')}" class="layui-input">
+			<input type="text" name="storage_oss_domain" required="required" title="请输入AliOSS存储 Domain (访问域名)" placeholder="请输入AliOSS存储 Domain (访问域名)" value="{:system_config('storage_oss_domain')}" class="layui-input">
 			<p class="help-block">填写OSS存储外部访问域名，如：static.ctolog.cc</p>
 		</div>
 	</div>
 	<div class="form-group" data-storage-type="oss">
 		<label class="col-sm-2 control-label">AccessKey <span class="nowrap">(访问密钥)</span></label>
 		<div class='col-sm-8'>
-			<input type="text" name="storage_oss_keyid" required="required" title="请输入16位AliOSS AccessKey (访问密钥)" placeholder="请输入AliOSS AccessKey (访问密钥)" value="{:systemConfig('storage_oss_keyid')}" maxlength="16" class="layui-input">
+			<input type="text" name="storage_oss_keyid" required="required" title="请输入16位AliOSS AccessKey (访问密钥)" placeholder="请输入AliOSS AccessKey (访问密钥)" value="{:system_config('storage_oss_keyid')}" maxlength="16" class="layui-input">
 			<p class="help-block">可以在 [ 阿里云 > 个人中心 ] 设置并获取到访问密钥</p>
 		</div>
 	</div>
 	<div class="form-group" data-storage-type="oss">
 		<label class="col-sm-2 control-label">SecretKey <span class="nowrap">(安全密钥)</span></label>
 		<div class='col-sm-8'>
-			<input type="password" name="storage_oss_secret" required="required" title="请输入30位AliOSS SecretKey (安全密钥)" placeholder="请输入AliOSS SecretKey (安全密钥)" value="{:systemConfig('storage_oss_secret')}" maxlength="30" class="layui-input">
+			<input type="password" name="storage_oss_secret" required="required" title="请输入30位AliOSS SecretKey (安全密钥)" placeholder="请输入AliOSS SecretKey (安全密钥)" value="{:system_config('storage_oss_secret')}" maxlength="30" class="layui-input">
 			<p class="help-block">可以在 [ 阿里云 > 个人中心 ] 设置并获取到安全密钥</p>
 		</div>
 	</div>

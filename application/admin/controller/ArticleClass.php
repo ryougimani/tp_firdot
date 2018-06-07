@@ -87,9 +87,9 @@ class ArticleClass extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -98,9 +98,9 @@ class ArticleClass extends BasicAdmin {
 	 */
 	public function disables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -109,8 +109,8 @@ class ArticleClass extends BasicAdmin {
 	 */
 	public function del() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }

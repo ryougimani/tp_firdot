@@ -9,15 +9,15 @@
 
 namespace app\common\validate;
 
+use think\Validate;
 use think\Db;
-use think\validate;
 
 /**
  * 系统用户验证器
  * Class User
  * @package app\common\validate
  */
-class User extends validate {
+class User extends Validate {
 
 	protected $rule = [
 		'id' => 'require',
@@ -30,16 +30,16 @@ class User extends validate {
 	];
 
 	protected $message = [
-		'id.require' => '{%uid require}',
-		'username.require' => '{%username require}',
-		'username.unique' => '{%username unique}',
-		'phone.regex' => '{%phone regex}',
-		'email.email' => '{%email email}',
-		'old_password.require' => '{%old_password require}',
-		'old_password._checkOldPwd' => '{%old_password checkOldPwd}',
-		'password.require' => '{%password require}',
-		'password.regex' => '{%password regex}',
-		're_password.confirm' => '{%re_password confirm}',
+		'id.require' => '{%uid_require}',
+		'username.require' => '{%username_require}',
+		'username.unique' => '{%username_unique}',
+		'phone.regex' => '{%phone_regex}',
+		'email.email' => '{%email_email}',
+		'old_password.require' => '{%old_password_require}',
+		'old_password._checkOldPwd' => '{%old_password_checkOldPwd}',
+		'password.require' => '{%password_require}',
+		'password.regex' => '{%password_regex}',
+		're_password.confirm' => '{%re_password_confirm}',
 	];
 
 	protected $scene = [

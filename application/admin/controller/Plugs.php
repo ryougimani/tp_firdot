@@ -39,7 +39,7 @@ class Plugs extends BasicAdmin {
 		$this->assign('model', $model);
 		// 上传类型本地或远程网盘
 		if (!in_array(($up_type = $this->request->get('up_type')), ['local', 'qiniu'])) {
-			$up_type = systemConfig('storage_type');
+			$up_type = system_config('storage_type');
 		}
 		$this->assign('up_type', $up_type);
 		$this->assign('mimes', FileService::getFileMine($types));
@@ -102,8 +102,8 @@ class Plugs extends BasicAdmin {
 				$config['policy'] = base64_encode(json_encode($policyText));
 				$config['server'] = FileService::getUploadOssUrl();
 				$config['site_url'] = FileService::getBaseUrlOss() . $filename;
-				$config['signature'] = base64_encode(hash_hmac('sha1', $config['policy'], systemConfig('storage_oss_secret'), true));
-				$config['OSSAccessKeyId'] = systemConfig('storage_oss_keyid');
+				$config['signature'] = base64_encode(hash_hmac('sha1', $config['policy'], system_config('storage_oss_secret'), true));
+				$config['OSSAccessKeyId'] = system_config('storage_oss_keyid');
 		}
 		$this->result($config, 'NOT_FOUND');
 	}
@@ -115,11 +115,11 @@ class Plugs extends BasicAdmin {
 	 * @return string
 	 */
 	protected function _getQiniuToken($key) {
-		$accessKey = systemConfig('storage_qiniu_access_key');
-		$secretKey = systemConfig('storage_qiniu_secret_key');
-		$bucket = systemConfig('storage_qiniu_bucket');
-		$host = systemConfig('storage_qiniu_domain');
-		$protocol = systemConfig('storage_qiniu_is_https') ? 'https' : 'http';
+		$accessKey = system_config('storage_qiniu_access_key');
+		$secretKey = system_config('storage_qiniu_secret_key');
+		$bucket = system_config('storage_qiniu_bucket');
+		$host = system_config('storage_qiniu_domain');
+		$protocol = system_config('storage_qiniu_is_https') ? 'https' : 'http';
 		$params = [
 			'scope' => "{$bucket}:{$key}",
 			'deadline' => 3600 + time(),

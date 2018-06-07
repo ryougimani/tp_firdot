@@ -3,24 +3,24 @@
 {block name="button"}
 <div class="nowrap pull-right" style="margin-top:10px">
 	{if auth("$controlUrl/del")}
-	<button data-update data-field='delete' data-action='{:url("$controlUrl/del")}' class='layui-btn layui-btn-small layui-btn-danger'><i class='fa fa-remove'></i> {:lang('del log')}</button>
+	<button data-update data-field='delete' data-action='{:url("$controlUrl/del")}' class='layui-btn layui-btn-sm layui-btn-danger'><i class='fa fa-remove'></i> {$Think.lang.delete}</button>
 	{/if}
 </div>
 {/block}
 
 {block name="content"}
 <!-- 表单搜索 开始 -->
-<form class="animated form-search" action="__SELF__" onsubmit="return false" method="get">
+<form class="animated layui-form form-search" action="{:request()->url()}" onsubmit="return false" method="get">
 	<div class="row">
 		<div class="col-xs-3">
 			<div class="form-group">
-				<input type="text" name="username" value="{$Think.get.username|default=''}" placeholder="{:lang('log username')}" class="input-sm form-control">
+				<input type="text" class="layui-input" name="username" value="{$Think.get.username|default=''}" placeholder="{$Think.lang.username}"/>
 			</div>
 		</div>
 		<div class="col-xs-3">
 			<div class="form-group">
-				<select name='action' class='input-sm form-control'>
-					<option value=''> - {:lang('log action')} -</option>
+				<select class="layui-input" name='action'>
+					<option value=''> - {$Think.lang.action} -</option>
 					{foreach $actions as $action}
 					{if $action===$Think.get.action}
 					<option selected="selected" value='{$action}'>{$action}</option>
@@ -33,12 +33,12 @@
 		</div>
 		<div class="col-xs-3">
 			<div class="form-group">
-				<input type="text" name="content" value="{$Think.get.content|default=''}" placeholder="{:lang('log content')}" class="input-sm form-control">
+				<input type="text" class="layui-input" name="content" value="{$Think.get.content|default=''}" placeholder="{$Think.lang.content}"/>
 			</div>
 		</div>
 		<div class="col-xs-1">
 			<div class="form-group">
-				<button type="submit" class="btn btn-sm btn-white"><i class="fa fa-search"></i> {:lang('search')}</button>
+				<button type="submit" class="layui-btn layui-btn-primary layui-btn-sm"><i class="fa fa-search"></i> {$Think.lang.search}</button>
 			</div>
 		</div>
 	</div>
@@ -46,36 +46,42 @@
 <!-- 表单搜索 结束 -->
 <form onsubmit="return false;" data-auto="" method="POST">
 	<input type="hidden" value="resort" name="action"/>
-	<table class="table table-hover">
+	<table class="layui-table" lay-skin="line">
 		<thead>
 		<tr>
 			<th class='list-table-check-td'>
-				<input data-none-auto="" data-check-target='.list-check-box' type='checkbox'/>
+				<input type='checkbox' data-check-all='list-check'/>
 			</th>
-			<th class='text-center'>{:lang('log username')}</th>
-			<th class='text-left'>{:lang('log node')}</th>
-			<th class='text-left'>{:lang('log action')}</th>
-			<th class='text-left'>{:lang('log content')}</th>
-			<th class='text-left'>{:lang('log isp')}</th>
-			<th class='text-left'>{:lang('log create_time')}</th>
+			<th class='text-center'>{$Think.lang.username}</th>
+			<th class='text-center'>{$Think.lang.node}</th>
+			<th class='text-center'>{$Think.lang.action}</th>
+			<th class='text-center'>{$Think.lang.content}</th>
+			<th class='text-center'>{$Think.lang.isp}</th>
+			<th class='text-center'>{$Think.lang.create_time}</th>
 		</tr>
 		</thead>
 		<tbody>
 		{foreach $list as $key=>$vo}
 		<tr>
 			<td class='list-table-check-td'>
-				<input class="list-check-box" value='{$vo.id}' type='checkbox'/>
+				<input type='checkbox' value="{$vo.id}" data-check="list-check"/>
 			</td>
 			<td class='text-center'>{$vo.username}</td>
-			<td class='text-left'>{$vo.node}</td>
-			<td class='text-left'>{$vo.action}</td>
-			<td class='text-left'>{$vo.content}</td>
-			<td class='text-left'>{$vo.isp|default=$vo.ip}</td>
-			<td class='text-left'>{$vo.create_time}</td>
+			<td class='text-center'>{$vo.node}</td>
+			<td class='text-center'>{$vo.action}</td>
+			<td class='text-center'>{$vo.content}</td>
+			<td class='text-center'>{$vo.isp|default=$vo.ip}</td>
+			<td class='text-center'>{$vo.create_time}</td>
 		</tr>
 		{/foreach}
 		</tbody>
 	</table>
-	{if isset($page)}<p>{$page}</p>{/if}
+	{if isset($page)}<div class="page">{$page|raw}</div>{/if}
 </form>
+{/block}
+
+{block name='script'}
+<script>
+window.form.render();
+</script>
 {/block}

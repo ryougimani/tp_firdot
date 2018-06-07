@@ -29,7 +29,7 @@ class Login extends BasicAdmin {
 	 * @access protected
 	 */
 	public function _initialize() {
-		if (session('user') && $this->request->action() !== 'out') {
+		if (session('admin') && $this->request->action() !== 'out') {
 			$this->redirect('@admin');
 		}
 	}
@@ -50,9 +50,9 @@ class Login extends BasicAdmin {
 			empty($user) && $this->error('登录账号不存在，请重新输入!');
 			($user['password'] !== passwordEncode($post['password'], $user['random_code'])) && $this->error('登录密码与账号不匹配，请重新输入!');
 			// 保存SESSION
-			session('user', $user);
+			session('admin', $user);
 			// 修改用户最后登录时间和登录次数
-			Db::name('SystemUser')->where('id', $user['id'])->update(['login_num' => ['exp', 'login_num+1'], 'login_time' => time(), 'login_ip' => $this->request->ip()]);
+			Db::name('SystemUser')->where('id', $user['id'])->update(['login_num' => ['INC', '1'], 'login_time' => time(), 'login_ip' => $this->request->ip()]);
 			// 获取用户权限节点
 			!empty($user['authorize']) && NodeService::applyAuthNode(true);
 			LogService::write('系统管理', '用户登录系统成功');

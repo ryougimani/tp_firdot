@@ -1,144 +1,228 @@
 {extend name='extra@admin/content'}
 
+{block name="style"}
+<style>
+	.layui-tab { margin: 0; }
+</style>
+{/block}
+
 {block name="content"}
-<ul class="nav nav-tabs" role="tablist">
-	<li role="presentation" class="active"><a href="#admin" aria-controls="admin" role="tab" data-toggle="tab">{:lang('admin node')}</a></li>
-	<li role="presentation"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">{:lang('home node')}</a></li>
-</ul>
-<div class="tab-content">
-	<div role="tabpanel" class="tab-pane active" id="admin">
-		<table class="table table-hover">
-			<thead>
-			<tr>
-				<th style="width:20px"></th>
-				<th class='text-left'>{:lang('system node structure')}</th>
-				<th class='text-left'></th>
-				<th>&nbsp;</th>
-			</tr>
-			</thead>
-			<tbody>
-			{foreach $nodes.admin as $key=>$vo}
-			<tr>
-				<td style="width:20px"></td>
-				<td class='text-left nowrap'>
-					{$vo.spl}{$vo.node}
-					{if auth("$controlUrl/save")}
-					&nbsp;<input class='layui-input layui-input-inline title-input' name='title' data-node="{$vo.node}" data-type="admin" value="{$vo.title}" style='height:28px;line-height:28px;width:auto'/>
-					{/if}
-				</td>
-				<td class='text-left nowrap'>
-					{if auth("$controlUrl/save")}
-					<label data-tips-text="{:lang('add login control description')}">
-						{if substr_count($vo['node'],'/')==2}
-						{notempty name='vo.is_login'}
-						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="admin" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)" checked='checked'/>
-						{else}
-						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="admin" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)"/>
-						{/notempty}
-						{:lang('add login control')}
+<div class="layui-tab layui-tab-card">
+	<ul class="layui-tab-title">
+		<li class="layui-this">{$Think.lang.admin_node}</li>
+		<li>{$Think.lang.home_node}</li>
+	</ul>
+	<div class="layui-tab-content">
+		<div class="layui-tab-item layui-show">
+			<table class="layui-table border-none" lay-skin="line">
+				<tbody>
+				{present name="nodes.admin"}
+				{foreach $nodes.admin as $key=>$vo}
+				<tr>
+					<td style="width:20px"></td>
+					<td class="text-left nowrap">
+						{$vo.spl|raw}{$vo.node}
+						{if auth("$controlUrl/save")}
+						&nbsp;<input class="layui-input layui-input-inline title-input" name="title" value="{$vo.title}" data-node="{$vo.node}" data-type="{$key}" style="height:28px;line-height:28px;width:auto"/>
 						{/if}
-					</label>
-					&nbsp;&nbsp;&nbsp;&nbsp;
-					<label data-tips-text="{:lang('add auth control description')}">
-						{if substr_count($vo['node'],'/')==2}
-						{notempty name='vo.is_auth'}
-						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="admin" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)" checked='checked'/>
-						{else}
-						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="admin" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)"/>
-						{/notempty}
-						{:lang('add auth control')}
+					</td>
+					<td class="text-left nowrap">
+						{if auth("$controlUrl/save") and $vo.level eq 1}
+						<label class="color-desc">
+							<input type="checkbox" data-type="{$key}" data-login-group="{$vo.node}"> {$Think.lang.all_add_login_control}
+						</label>
+						{elseif auth("$controlUrl/save") and $vo.level eq 2}
+						<span class="color-desc">&nbsp;├&nbsp;&nbsp;</span>
+						<label data-tips-text="{$Think.lang.add_login_control_description}">
+							{notempty name='vo.is_login'}
+							<input class="check-box login_{$key}" type="checkbox" name="is_login" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="!this.checked && ($('.auth_{$key}')[0].checked = !!this.checked)" checked="checked"/>
+							{else}
+							<input class="check-box login_{$key}" type="checkbox" name="is_login" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="!this.checked && ($('.auth_{$key}')[0].checked = !!this.checked)"/>
+							{/notempty}
+							{$Think.lang.add_login_control}
+						</label>
 						{/if}
-					</label>
-					{/if}
-				</td>
-				<td style="width:100%"></td>
-			</tr>
-			{/foreach}
-			</tbody>
-		</table>
-	</div>
-	<div role="tabpanel" class="tab-pane" id="home">
-		<table class="table table-hover">
-			<thead>
-			<tr>
-				<th style="width:20px"></th>
-				<th class='text-left'>{:lang('system node structure')}</th>
-				<th class='text-left'></th>
-				<th>&nbsp;</th>
-			</tr>
-			</thead>
-			<tbody>
-			{foreach $nodes.home as $key=>$vo}
-			<tr>
-				<td style="width:20px"></td>
-				<td class='text-left nowrap'>
-					{$vo.spl}{$vo.node}
-					{if auth("$controlUrl/save")}
-					&nbsp;<input class='layui-input layui-input-inline title-input' name='title' data-node="{$vo.node}" data-type="home" value="{$vo.title}" style='height:28px;line-height:28px;width:auto'/>
-					{/if}
-				</td>
-				<td class='text-left nowrap'>
-					{if auth("$controlUrl/save")}
-					<label data-tips-text="{:lang('add login control description')}">
-						{if substr_count($vo['node'],'/')==2}
-						{notempty name='vo.is_login'}
-						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="home" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)" checked='checked'/>
-						{else}
-						<input class="check-box login_{$key}" type='checkbox' value='1' name='is_login' data-node="{$vo.node}" data-type="home" onclick="!this.checked&&($('.auth_{$key}')[0].checked=!!this.checked)"/>
-						{/notempty}
-						{:lang('add login control')}
+					</td>
+					<td class="text-left nowrap">
+						{if auth("$controlUrl/save") and $vo.level eq 1}
+						<label class="notselect margin-left-15 color-desc">
+							<input type="checkbox" data-type="{$key}" data-login-group="{$vo.node}"> {$Think.lang.all_add_auth_control}
+						</label>
+						{elseif auth("$controlUrl/save") and $vo.level eq 2}
+						<span class="color-desc">&nbsp;├&nbsp;&nbsp;</span>
+						<label data-tips-text="{$Think.lang.add_auth_control_description}">
+							{notempty name='vo.is_auth'}
+							<input class="check-box auth_{$key}" type="checkbox" name="is_auth" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="this.checked && ($('.login_{$key}')[0].checked =!!this.checked)" checked="checked"/>
+							{else}
+							<input class="check-box auth_{$key}" type="checkbox" name="is_auth" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="this.checked && ($('.login_{$key}')[0].checked = !!this.checked)"/>
+							{/notempty}
+							{$Think.lang.add_auth_control}
+						</label>
 						{/if}
-					</label>
-					&nbsp;&nbsp;&nbsp;&nbsp;
-					<label data-tips-text="{:lang('add auth control description')}">
-						{if substr_count($vo['node'],'/')==2}
-						{notempty name='vo.is_auth'}
-						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="home" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)" checked='checked'/>
-						{else}
-						<input class="check-box auth_{$key}" type='checkbox' value='1' name='is_auth' data-node="{$vo.node}" data-type="home" onclick="this.checked&&($('.login_{$key}')[0].checked=!!this.checked)"/>
-						{/notempty}
-						{:lang('add auth control')}
+					</td>
+					<td style="width:100%"></td>
+				</tr>
+				{/foreach}
+				{/present}
+				</tbody>
+			</table>
+		</div>
+		<div class="layui-tab-item">
+			<table class="layui-table border-none" lay-skin="line">
+				<tbody>
+				{present name="nodes.home"}
+				{foreach $nodes.home as $key=>$vo}
+				<tr>
+					<td style="width:20px"></td>
+					<td class="text-left nowrap">
+						{$vo.spl|raw}{$vo.node}
+						{if auth("$controlUrl/save")}
+						&nbsp;<input class="layui-input layui-input-inline title-input" name="title" data-node="{$vo.node}" data-type="{$key}" value="{$vo.title}" style="height:28px;line-height:28px;width:auto"/>
 						{/if}
-					</label>
-					{/if}
-				</td>
-				<td style="width:100%"></td>
-			</tr>
-			{/foreach}
-			</tbody>
-		</table>
+					</td>
+					<td class="text-left nowrap">
+						{if auth("$controlUrl/save") and $vo.level eq 1}
+						<label class="color-desc">
+							<input type="checkbox" data-type="{$key}" data-login-group="{$vo.node}"> {$Think.lang.all_add_login_control}
+						</label>
+						{elseif auth("$controlUrl/save") and $vo.level eq 2}
+						<span class="color-desc">&nbsp;├&nbsp;&nbsp;</span>
+						<label data-tips-text="{$Think.lang.add_login_control_description}">
+							{notempty name='vo.is_login'}
+							<input class="check-box login_{$key}" type="checkbox" name="is_login" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="!this.checked && ($('.auth_{$key}')[0].checked = !!this.checked)" checked="checked"/>
+							{else}
+							<input class="check-box login_{$key}" type="checkbox" name="is_login" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="!this.checked && ($('.auth_{$key}')[0].checked = !!this.checked)"/>
+							{/notempty}
+							{$Think.lang.add_login_control}
+						</label>
+						{/if}
+					</td>
+					<td class="text-left nowrap">
+						{if auth("$controlUrl/save") and $vo.level eq 1}
+						<label class="notselect margin-left-15 color-desc">
+							<input type="checkbox" data-type="{$key}" data-login-group="{$vo.node}"> {$Think.lang.all_add_auth_control}
+						</label>
+						{elseif auth("$controlUrl/save") and $vo.level eq 2}
+						<span class="color-desc">&nbsp;├&nbsp;&nbsp;</span>
+						<label data-tips-text="{$Think.lang.add_auth_control_description}">
+							{notempty name='vo.is_auth'}
+							<input class="check-box auth_{$key}" type="checkbox" name="is_auth" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="this.checked && ($('.login_{$key}')[0].checked =!!this.checked)" checked="checked"/>
+							{else}
+							<input class="check-box auth_{$key}" type="checkbox" name="is_auth" value="1" data-node="{$vo.node}" data-type="{$key}" data-login-filter="{$vo.pnode}" onclick="this.checked && ($('.login_{$key}')[0].checked = !!this.checked)"/>
+							{/notempty}
+							{$Think.lang.add_auth_control}
+						</label>
+						{/if}
+					</td>
+					<td style="width:100%"></td>
+				</tr>
+				{/foreach}
+				{/present}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
+{/block}
+
+
+{block name='script'}
 {if auth("$controlUrl/save")}
 <script>
 	$(function () {
-		$('input.title-input').on('blur', function () {
-			var data = {list: [{name: this.name, value: this.value, node: this.getAttribute('data-node'), type: this.getAttribute('data-type')}]};
-			$.form.load('{:url("save")}', data, 'POST', function (ret) {
-				if(ret.code===0){
-					setTimeout(function(){
-						$.form.reload();
-					},3000);
-					$.msg.auto(ret);
+		syncLoginGroup.call(this);
+		$('[data-login-group]').on('click', function () {
+			var twoNode = this.getAttribute('data-login-group');
+			if (!checkRequestStatus(twoNode)) {
+				this.checked = !this.checked;
+				return $.msg.tips('正在处理中, 请稍候...');
+			}
+			var checked = !!this.checked;
+			$('[data-login-filter="' + twoNode + '"]').map(function () {
+				if (!(this.checked = checked)) {
+					$('[data-auth-filter="' + twoNode + '"]').map(function () {
+						this.checked = false;
+					});
 				}
-				return false;
+				update(this);
 			});
 		});
+
+		syncAuthGroup.call(this);
+		$('[data-auth-group]').on('click', function () {
+			var twoNode = this.getAttribute('data-auth-group');
+			if (!checkRequestStatus(twoNode)) {
+				this.checked = !this.checked;
+				return $.msg.tips('正在处理中, 请稍候...');
+			}
+			var checked = !!this.checked;
+			$('[data-auth-filter="' + twoNode + '"]').map(function () {
+				if ((this.checked = checked)) {
+					$('[data-login-filter="' + twoNode + '"]').map(function () {
+						this.checked = checked;
+					});
+				}
+				update(this);
+			});
+		});
+
+		// 更新触发更新
 		$('input.check-box').on('click', function () {
-			var data = {list: []};
-			$(this).parent().parent().find('input').map(function () {
-				data.list.push({name: this.name, value: this.checked ? 1 : 0, node: this.getAttribute('data-node'), type: this.getAttribute('data-type')});
-			});
-			$.form.load('{:url("save")}', data, 'POST', function (ret) {
-				if(ret.code===0){
-					setTimeout(function(){
-						$.form.reload();
-					},3000);
-					$.msg.auto(ret);
-				}
-				return false;
-			});
+			update(this);
 		});
+
+		$('input.title-input').on('blur', function () {
+			update(this);
+		});
+
+		// 数据自动更新
+		function update(self) {
+			var $item = $(self).parents('tr'), data = {list: []};
+			$item.find('input').map(function () {
+				var value = this.type === 'text' ? this.value : (this.checked ? 1 : 0);
+				data.list.push({name: this.name, value: value, node: this.getAttribute('data-node'), type: this.getAttribute('data-type')});
+			});
+			$item.find('.loading-tips').html('<p class="color-green"><i class="fa fa-spinner fa-spin"></i> 更新数据...</p>');
+			$.form.load('{:url("save")}', data, 'post', function (ret) {
+				if (ret.code === 0) {
+					var tips = '<p class="color-red"><i class="fa fa-close"></i> 更新异常</p>';
+					return $item.find('.loading-tips').html(tips), false;
+				}
+				return $item.find('.loading-tips').html(''), false;
+			}, false);
+			return syncLoginGroup(), syncAuthGroup();
+		}
+
+		// 状态网络处理状态
+		function checkRequestStatus(twoNode) {
+			var status = true;
+			$('.loading-tips[data-tips-filter="' + twoNode + '"]').map(function () {
+				$(this).html() && (status = false);
+			});
+			return status;
+		}
+
+		// 同步登录分组状态
+		function syncLoginGroup() {
+			$('[data-login-group]').map(function () {
+				var node = this.getAttribute('data-login-group'), checked = true;
+				$('[data-login-filter="' + node + '"]').map(function () {
+					this.checked || (checked = false);
+				});
+				this.checked = checked;
+			});
+		}
+
+		// 同步权限分组状态
+		function syncAuthGroup() {
+			$('[data-auth-group]').map(function () {
+				var node = this.getAttribute('data-auth-group'), checked = true;
+				$('[data-auth-filter="' + node + '"]').map(function () {
+					this.checked || (checked = false);
+				});
+				this.checked = checked;
+			});
+		}
 	});
 </script>
 {/if}

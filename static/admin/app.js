@@ -15,55 +15,32 @@ var _root = (function () {
 
 // RequireJs 配置参数
 require.config({
-	waitSeconds: 0,
+	waitSeconds: 60,
 	baseUrl: _root,
-	map: {'*': {css: _root + '../plugs/require/require.css.js'}},
 	paths: {
-		'admin.plugs': ['plugs'],
-		'admin.listen': ['listen'],
-		'template': ['../plugs/template/template'],
-		'pcasunzips': ['../plugs/jquery/pcasunzips'],
-		'pace': ['../plugs/jquery/pace.min'],
-		'json': ['../plugs/jquery/json2.min'],
 		'layui': ['../plugs/layui/layui'],
-		'jquery': ['../plugs/jquery/jquery.min'],
-		'base64': ['../plugs/jquery/base64.min'],
-		'angular': ['../plugs/angular/angular.min'],
 		'ckeditor': ['../plugs/ckeditor/ckeditor'],
-		'websocket': ['../plugs/socket/websocket'],
 		'bootstrap': ['../plugs/bootstrap/js/bootstrap.min'],
-		'bootstrap.typeahead': ['../plugs/bootstrap/js/bootstrap3-typeahead.min'],
-		'jquery.ztree': ['../plugs/ztree/jquery.ztree.all.min'],
-		'jquery.masonry': ['../plugs/jquery/masonry.min'],
+		'ztree': ['../plugs/ztree/jquery.ztree.all.min'],
 		'jquery.cookies': ['../plugs/jquery/jquery.cookie'],
 	},
 	shim: {
-		'layui': {deps: ['jquery']},
-		'ckeditor': {deps: ['jquery']},
-		'websocket': {deps: [_root + '../plugs/socket/swfobject.min.js']},
-		'pcasunzips': {deps: ['jquery']},
-		'admin.plugs': {deps: ['jquery', 'layui']},
-		'admin.listen': {deps: ['jquery', 'jquery.cookies', 'admin.plugs']},
-		'bootstrap': {deps: ['jquery']},
-		'bootstrap.typeahead': {deps: ['bootstrap']},
-		'jquery.ztree': {deps: ['jquery', 'css!' + _root + '../plugs/ztree/zTreeStyle/zTreeStyle.css']},
-		'jquery.cookies': {deps: ['jquery']},
-		'jquery.masonry': {deps: ['jquery']},
+
 	},
-	// deps: [],
+	deps: ['bootstrap'],
 	// 开启debug模式，不缓存资源
-	//urlArgs: "ver=" + (new Date()).getTime()
+	urlArgs: "ver=" + (new Date()).getTime()
+});
+
+// 注册jquery到require模块
+define('jquery', function () {
+	return layui.$;
 });
 
 // UI框架初始化
 PageLayout.call(this);
-function PageLayout(callback, custom, basic) {
-	window.WEB_SOCKET_SWF_LOCATION = _root + "../plugs/socket/WebSocketMain.swf";
-	require(basic || ['pace', 'jquery', 'layui', 'bootstrap'], function () {
-		layui.config({dir: _root + '../plugs/layui/'});
-		layui.use(['layer', 'form', 'laydate'], function () {
-			window.layer = layui.layer, window.form = layui.form, window.laydate = layui.laydate;
-			require(custom || ['admin.listen', 'ckeditor'], callback || false);
-		});
-	});
+
+// UI框架布局函数
+function PageLayout(callback, custom) {
+	require(custom || [], callback || false);
 }

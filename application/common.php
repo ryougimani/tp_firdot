@@ -26,7 +26,7 @@ function auth($node) {
  * @param bool $value 默认是false为获取值，否则为更新
  * @return bool|mixed|string
  */
-function systemConfig($name, $value = false) {
+function system_config($name, $value = false) {
 	static $config = [];
 	if ($value !== false) {
 		$config = [];
@@ -95,14 +95,14 @@ function & load_wechat($type = '') {
 	$index = md5(strtolower($type));
 	if (!isset($wechat[$index])) {
 		$config = [
-			'token'          => systemConfig('wechat_token'),
-			'appid'          => systemConfig('wechat_appid'),
-			'appsecret'      => systemConfig('wechat_appsecret'),
-			'encodingaeskey' => systemConfig('wechat_encodingaeskey'),
-			'mch_id'         => systemConfig('wechat_mch_id'),
-			'partnerkey'     => systemConfig('wechat_partnerkey'),
-			'ssl_cer'        => systemConfig('wechat_cert_cert'),
-			'ssl_key'        => systemConfig('wechat_cert_key'),
+			'token'          => system_config('wechat_token'),
+			'appid'          => system_config('wechat_appid'),
+			'appsecret'      => system_config('wechat_appsecret'),
+			'encodingaeskey' => system_config('wechat_encodingaeskey'),
+			'mch_id'         => system_config('wechat_mch_id'),
+			'partnerkey'     => system_config('wechat_partnerkey'),
+			'ssl_cer'        => system_config('wechat_cert_cert'),
+			'ssl_key'        => system_config('wechat_cert_key'),
 			'cachepath'      => CACHE_PATH . 'wxpay' . DS,
 		];
 		$wechat[$index] = Loader::get($type, $config);

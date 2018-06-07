@@ -1,5 +1,6 @@
 // 定义编辑器标准配置
 CKEDITOR.editorConfig = function (config) {
+	//config.height = 300;
     config.language = 'zh-cn';
     config.toolbar = [
         {name: 'document', items: ['Source']},

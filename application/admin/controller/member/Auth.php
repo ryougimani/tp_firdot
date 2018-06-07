@@ -56,7 +56,7 @@ class Auth extends BasicAdmin {
 	 */
 	protected function _apply_getnode($auth_id) {
 		$nodes = NodeService::get('home');
-		$checked = Db::name('SystemAuthNode')->where(['auth' => $auth_id])->column('node');
+		$checked = Db::name('MemberAuthNode')->where(['auth' => $auth_id])->column('node');
 		foreach ($nodes as $key => &$node) {
 			$node['checked'] = in_array($node['node'], $checked);
 			if (empty($node['is_auth']) && substr_count($node['node'], '/') > 1) {
@@ -77,9 +77,9 @@ class Auth extends BasicAdmin {
 		foreach (isset($post['nodes']) ? $post['nodes'] : [] as $node) {
 			$data[] = ['auth' => $auth_id, 'node' => $node];
 		}
-		Db::name('SystemAuthNode')->where(['auth' => $auth_id])->delete();
-		Db::name('SystemAuthNode')->insertAll($data);
-		$this->success(lang('member_auth apply save'), '');
+		Db::name('MemberAuthNode')->where(['auth' => $auth_id])->delete();
+		Db::name('MemberAuthNode')->insertAll($data);
+		$this->success(lang('save auth success'), '');
 	}
 
 	/**
@@ -93,7 +93,8 @@ class Auth extends BasicAdmin {
 		foreach ($nodes as $key => &$node) {
 			if (!empty($node['_sub_']) && is_array($node['_sub_'])) {
 				$node['_sub_'] = $this->_apply_filter($node['_sub_'], $level + 1);
-			} elseif ($level < 3) {
+			}
+			if (empty($node['_sub_']) && $level < 3) {
 				unset($nodes[$key]);
 			}
 		}
@@ -124,9 +125,9 @@ class Auth extends BasicAdmin {
 	 */
 	public function enables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('enables success'), '');
+			$this->success(lang('enables_success'), '');
 		}
-		$this->error(lang('enables error'));
+		$this->error(lang('enables_error'));
 	}
 
 	/**
@@ -135,9 +136,9 @@ class Auth extends BasicAdmin {
 	 */
 	public function disables() {
 		if (DataService::update($this->table)) {
-			$this->success(lang('disables success'), '');
+			$this->success(lang('disables_success'), '');
 		}
-		$this->error(lang('disables error'));
+		$this->error(lang('disables_error'));
 	}
 
 	/**
@@ -148,8 +149,8 @@ class Auth extends BasicAdmin {
 		if (DataService::update($this->table)) {
 			$id = $this->request->post('id');
 			Db::name('SystemAuthNode')->where('auth', $id)->delete();
-			$this->success(lang('del success'), '');
+			$this->success(lang('del_success'), '');
 		}
-		$this->error(lang('del error'));
+		$this->error(lang('del_error'));
 	}
 }
